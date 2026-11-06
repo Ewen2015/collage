@@ -85,6 +85,12 @@ h2{font-family:var(--serif);font-weight:400;font-size:clamp(32px,3.4vw,46px);
 .intro-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:80px}
 .intro-grid .body p{max-width:62ch;margin:0 0 18px;color:#333}
 .intro-grid .body p:first-child{font-size:19px;color:var(--ink)}
+.definition{margin:26px 0 0;padding:22px 0;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);
+  display:grid;grid-template-columns:minmax(0,.34fr) minmax(0,.66fr);gap:28px}
+.definition .term{font-family:var(--serif);font-size:26px;line-height:1.1;letter-spacing:-.02em;margin:0}
+.definition .term small{font-family:var(--sans);font-size:12px;letter-spacing:0;color:var(--muted);display:block;margin-top:8px}
+.definition .body p{font-size:15px;color:#333;margin:0 0 10px;max-width:64ch}
+.definition .body p:last-child{margin:0}
 .rule-list{list-style:none;margin:0;padding:0;border-top:1px solid var(--hair)}
 .rule-list li{padding:16px 0;border-bottom:1px solid var(--hair);display:grid;
   grid-template-columns:150px 1fr;gap:20px;font-size:15px}
@@ -157,6 +163,7 @@ footer a:hover{text-decoration:underline}
   .hero-copy p{font-size:17px}
   section{padding:60px 0}
   .intro-grid{grid-template-columns:1fr;gap:38px}
+  .definition{grid-template-columns:1fr;gap:10px}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:34px 18px}
   .frame{min-height:210px}
   .frame img{max-height:280px}
@@ -228,13 +235,22 @@ footer a:hover{text-decoration:underline}
 </div>
 
 <section id="about">
-  <div class="wrap intro-grid">
+  <div class="wrap">
+    <div class="definition">
+      <p class="term">What is collage art?<small>From the French <i>coller</i> — “to glue”</small></p>
+      <div class="body">
+        <p>Collage is an artwork assembled on a flat surface from materials that already exist: newspaper, photographs, printed paper, fabric, tickets, typography. Unlike a painting built from scratch, it works by <b>cutting, rearranging and gluing</b> fragments until unlike things form a new argument.</p>
+        <p>It began as an experiment in Picasso and Braque's Cubism around 1912, then became photomontage in Dada, impossible spaces in Surrealism, mass-media repetition in Pop, and torn posters in Décollage. It is a technique and a medium rather than one formal movement — its constant is fracture, reassembly and fusion.</p>
+      </div>
+    </div>
+  </div>
+  <div class="wrap intro-grid" style="padding-top:64px">
     <div>
       <h2>The idea comes first, then the scissors.</h2>
       <p class="lede">Most image tools take a style word and return a texture. This skill reads what you wrote, names the tension inside it, and builds an argument out of two unlike things.</p>
       <div class="body">
         <p>A phrase like <i>“the tide keeps coming back, the city pretends to be asleep”</i> becomes a pairing sentence, then three photographable motifs — a breaking wave, a night skyline, a lunar crater — then an arch, a horizon, a headline cut from a magazine. The result is a poster that means something, not a photograph with a collage filter.</p>
-        <p>The rules of the medium come from the literature: collage is a two-dimensional assemblage of materials that already have a history, from Picasso's 1912 chair caning onward. Its visual logic is fracture, reassembly, fusion. So the renderer works in paper stocks, print screens, torn edges, tape and registration marks — and it keeps the ink count to two or three.</p>
+        <p>So the renderer works in paper stocks, print screens, torn edges, tape and registration marks — and it keeps the ink count to two or three.</p>
       </div>
     </div>
     <div>
