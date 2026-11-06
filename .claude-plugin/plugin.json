@@ -1,8 +1,0 @@
-{
-  "name": "ewen-collage",
-  "version": "0.1.0",
-  "description": "A collage-art skill by Ewen: turn a theme or a passage of text into a finished cut-paper artwork with autonomous image sourcing.",
-  "author": {"name": "Ewen"},
-  "license": "MIT",
-  "keywords": ["collage", "art", "design", "papier-colle", "photomontage"]
-}

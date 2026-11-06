@@ -1,7 +1,8 @@
 # ewen-collage
 
-A [Claude skill](https://code.claude.com/docs/en/skills) by **Ewen** that turns a
-theme, a brief, or a passage of text into a finished collage artwork.
+An **agent skill** by Ewen — a plain `SKILL.md` folder, usable by any agent that
+can read skill instructions and run Python — that turns a theme, a brief, or a
+passage of text into a finished collage artwork.
 
 Give it a topic or a paragraph. It reads the text, finds the tension in it,
 translates that into concrete visual motifs, searches for its own licensed
@@ -23,22 +24,51 @@ convention is descriptive names (`pdf`, `xlsx`, `frontend-design`) rather than
 personal ones. Putting a personal name in a skill name is uncommon for published
 skills: it makes discovery worse, it ties a reusable tool to one identity, and
 if others install several of your skills, the name stops telling them what the
-skill does. Names belong in `metadata.author`, the plugin manifest, the README
+skill does. Names belong in `metadata.author`, package metadata, the README
 and the LICENSE. That is the pattern used here.
 
 ## Install
 
-Copy the `skills/collage-art/` directory into your skills folder, or install
-this repo as a plugin (the `.claude-plugin/plugin.json` manifest is included).
-Requires Python 3.9+, Pillow and NumPy. Image sourcing also needs network
-access; everything else works offline.
+Install the whole `skills/collage-art/` folder — `SKILL.md`, five references,
+four scripts, `requirements.txt` and the installers all travel together. A
+single `SKILL.md` file is not a complete install.
+
+The standard open agent-skills CLI (Node.js 22.20+) does this for you, targeting
+whatever skills-compatible agent you use:
 
 ```bash
-pip install Pillow numpy
+npx skills add Ewen2015/ewen-collage --skill collage-art -g -y
+# omit -g to install into the current project only
 ```
 
-Then just ask: *"Make a collage poster about the tide and a sleeping city"* or
-paste a paragraph and ask for a collage.
+Alternatively use the direct folder link or the checked-in
+[`dist/collage-art.skill`](dist/collage-art.skill) ZIP package. Clone and copy,
+or unzip into your agent's skills directory:
+
+```bash
+git clone https://github.com/Ewen2015/ewen-collage.git
+cp -r ewen-collage/skills/collage-art /path/to/your/agent/skills/
+
+# or, with the portable package:
+curl -L -o collage-art.skill \
+  https://github.com/Ewen2015/ewen-collage/raw/main/dist/collage-art.skill
+unzip -o collage-art.skill -d /path/to/your/agent/skills/collage-art
+```
+
+Then, from the installed folder, install its Python dependencies and verify
+everything is present. This is the only step that needs a network connection;
+the 16 built-in presets work offline and Wikimedia Commons sourcing needs
+network only at run time.
+
+```bash
+cd /path/to/your/agent/skills/collage-art
+bash install.sh                 # Windows: powershell -ExecutionPolicy Bypass -File install.ps1
+python3 scripts/check_setup.py  # optional: re-check at any time
+```
+
+Requires Python 3.9+, Pillow and NumPy. Then just ask:
+*"Make a collage poster about the tide and a sleeping city"* or paste a
+paragraph and ask for a collage.
 
 ## What it does
 
@@ -69,18 +99,22 @@ extract-elements-then-rebuild method). Full notes are in
 
 ```text
 ewen-collage/
-├── .claude-plugin/plugin.json       plugin manifest (author: Ewen)
 ├── README.md                        this file
 ├── LICENSE                          MIT, © Ewen
 ├── skills/
-│   └── collage-art/                 ← the skill (name: collage-art)
+│   └── collage-art/                 ← the whole installable skill
 │       ├── SKILL.md                 end-to-end workflow
 │       ├── references/              movements, materials, composition, prompts, schema
 │       ├── scripts/
 │       │   ├── collage.py           renderer (Pillow + NumPy)
 │       │   ├── source_assets.py     Commons search + attribution manifest
-│       │   └── theme_to_recipe.py   concept → recipe compiler
+│       │   ├── theme_to_recipe.py   concept → recipe compiler
+│       │   └── check_setup.py       install verification
+│       ├── requirements.txt          Pillow + NumPy
+│       ├── install.sh / install.ps1 one-time dependency installers
 │       └── assets/                  optional local source images
+├── dist/
+│   └── collage-art.skill            portable ZIP of the whole folder
 ├── docs/                            GitHub Pages site (index.html + 19 works)
 └── examples/
     ├── gallery/                     16 built-in style presets

@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>collage-art — a skill by Ewen</title>
-<meta name="description" content="Give a Claude agent a theme or a paragraph. Get a finished collage artwork: the ideas extracted, licensed images found, and paper cut and pasted.">
+<meta name="description" content="Give your agent a theme or a paragraph. Get a finished collage artwork: the ideas extracted, licensed images found, and paper cut and pasted.">
 <meta property="og:title" content="collage-art — a skill by Ewen">
-<meta property="og:description" content="Text in, collage out. An open-source Claude skill with autonomous image sourcing.">
+<meta property="og:description" content="Text in, collage out. An open-source agent skill with autonomous image sourcing.">
 <meta property="og:image" content="gallery/tide-city.png">
 <style>
 :root{
@@ -57,6 +57,7 @@ img{display:block;max-width:100%}
 .btn{display:inline-block;background:var(--ink);color:#fff;text-decoration:none;
   padding:13px 22px;font-size:15px;border:1px solid var(--ink);border-radius:0;cursor:pointer;font-family:inherit}
 .btn:hover{background:var(--accent);border-color:var(--accent)}
+.btn-copy{font-family:inherit;line-height:1.55}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--hair)}
 .btn.ghost:hover{border-color:var(--ink);background:transparent}
 .btn .arrow{display:none}
@@ -90,18 +91,23 @@ h2{font-family:var(--serif);font-weight:400;font-size:clamp(32px,3.4vw,46px);
 .rule-list b{font-weight:600}
 .rule-list span{color:var(--muted)}
 
-/* prompt block */
+/* install-link block */
 .agent{background:var(--wash)}
 .agent-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:28px}
 .agent-head .lede{margin:0;max-width:58ch}
 .copy-btn{background:var(--ink);color:#fff;border:1px solid var(--ink);padding:12px 20px;
   font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
 .copy-btn:hover{background:var(--accent);border-color:var(--accent)}
-.copy-btn[aria-live]{min-width:132px}
-.prompt{background:#fff;border:1px solid var(--hair);padding:30px 34px;
-  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;line-height:1.75;
-  white-space:pre-wrap;color:#222;margin:0;max-width:100%;overflow-x:auto}
-.prompt-hint{font-size:13px;color:var(--muted);margin:16px 0 0;max-width:70ch}
+.copy-btn[aria-live]{min-width:158px}
+.copy-btn.small{padding:9px 14px;font-size:13px;min-width:0}
+.install-stack{display:grid;gap:16px}
+.install-block-head{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:8px}
+.install-block-head .install-link-label{margin:0}
+.install-link{background:#fff;border:1px solid var(--hair);padding:20px 24px;overflow-x:auto}
+.install-link-label{display:block;font-size:13px;color:var(--muted);margin-bottom:10px}
+.install-link code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:14px;line-height:1.6;color:var(--ink);word-break:break-all;white-space:nowrap}
+.prompt-hint{font-size:13px;color:var(--muted);margin:18px 0 0;max-width:84ch}
 
 /* gallery grid: works, not cards */
 .gallery .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:24px;flex-wrap:wrap}
@@ -175,7 +181,8 @@ footer a:hover{text-decoration:underline}
   .title{font-size:17px}
   .rule-list li{grid-template-columns:1fr;gap:2px}
   .credits{grid-template-columns:1fr;gap:26px}
-  .prompt{padding:20px;font-size:12.5px}
+  .install-link{padding:18px 20px}
+  .install-link code{font-size:12.5px;white-space:pre-wrap}
   .assemblage{height:390px}
   .scrap.a{width:145px;height:181px;left:2%}
   .scrap.b{width:125px;height:156px;right:2%}
@@ -205,7 +212,7 @@ footer a:hover{text-decoration:underline}
     <a class="wordmark" href="#top">collage-art <span>/ by Ewen</span></a>
     <nav class="nav" aria-label="Sections">
       <a href="#about">About</a>
-      <a href="#agent">Prompt</a>
+      <a href="#agent">Get the skill</a>
       <a href="#gallery">Gallery</a>
       <a href="#install">Install</a>
       <a class="repo hide-sm" href="https://github.com/Ewen2015/ewen-collage">GitHub ↗</a>
@@ -219,12 +226,12 @@ footer a:hover{text-decoration:underline}
   <div class="wrap">
     <div class="hero-copy">
       <h1>Text in.<em>Collage out.</em></h1>
-      <p>Give a Claude agent a theme, a brief, or a paragraph. It finds the ideas worth seeing, searches for its own licensed source images, and cuts and pastes them into a finished artwork.</p>
+      <p>Give your agent a theme, a brief, or a paragraph. It finds the ideas worth seeing, searches for its own licensed source images, and cuts and pastes them into a finished artwork.</p>
       <div class="hero-actions">
-        <a class="btn" href="#agent">Copy the prompt</a>
+        <button class="btn btn-copy" id="heroCopy" type="button" aria-live="polite">Copy agent command</button>
         <a class="btn ghost" href="#gallery">See the work</a>
       </div>
-      <p class="hero-note">An open-source Claude skill · Python, Pillow, NumPy · MIT</p>
+      <p class="hero-note">An open-source skill for any agent · Python, Pillow, NumPy · MIT</p>
     </div>
 
     <div class="assemblage" aria-label="A collage of four works from the gallery">
@@ -266,24 +273,47 @@ footer a:hover{text-decoration:underline}
   <div class="wrap">
     <div class="agent-head">
       <div>
-        <h2>Copy this to your agent.</h2>
-        <p class="lede">If your agent has the skill installed, this is all you need. Paste a theme or a paragraph into the last line.</p>
+        <h2>Install the whole skill.</h2>
+        <p class="lede">A skill is a folder, not a prompt: <code>SKILL.md</code>, five references, four scripts, the dependency file and installers. These standard sources install that complete bundle into the skills directory of Claude Code, Codex, Cursor, OpenCode and other skills-compatible agents.</p>
       </div>
-      <button class="copy-btn" id="copyBtn" type="button" aria-live="polite">Copy prompt</button>
+      <button class="copy-btn" id="copyBtn" type="button" aria-live="polite">Copy agent command</button>
     </div>
-<pre class="prompt" id="prompt">Use the collage-art skill to make a finished collage artwork from the text below.
-
-Work end to end without asking me to make artistic decisions:
-1. Read the text, name the tension in it, and write one pairing sentence — "X meets Y, which suggests Z."
-2. Turn that into 2–4 photographable motifs, each with a concrete image-search query and a reason it belongs.
-3. Choose an art-historical strategy (Cubism, Dada, Surrealism, Pop, Décollage or editorial), a palette of 2–4 inks, a headline, and write concept.json.
-4. Autonomously search for licensed source images with source_assets.py, keep only CC / public-domain results, and write the attribution manifest.
-5. Compile the composition with theme_to_recipe.py, render it with collage.py, then look at the actual image and fix any anti-patterns (too many colours, shadow on every layer, a photo still reading as a window, type smaller than the scraps).
-6. Render two or three seeds, pick the best, and deliver the PNG with the pairing sentence, the strategy, the rationale and the image credits.
-
-Text:
-[ paste your theme or paragraph here ]</pre>
-    <p class="prompt-hint">Without the skill installed, clone <a href="https://github.com/Ewen2015/ewen-collage">the repository</a> first — see the install guide below. The skill also accepts your own images instead of searching.</p>
+    <div class="install-stack">
+      <div>
+        <div class="install-block-head">
+          <span class="install-link-label">Skill install link · paste into your agent, or give to <code>npx skills add &lt;url&gt;</code></span>
+          <span style="display:inline-flex;gap:10px;flex-wrap:wrap">
+            <button class="copy-btn small" id="copyAgentBtn" type="button" aria-live="polite">Copy agent command</button>
+            <button class="copy-btn small" id="copyLinkBtn" type="button" aria-live="polite">Copy link</button>
+          </span>
+        </div>
+        <div class="install-link">
+          <code id="installUrl">https://github.com/Ewen2015/ewen-collage/tree/main/skills/collage-art</code>
+        </div>
+      </div>
+      <div>
+        <div class="install-block-head">
+          <span class="install-link-label">Standard CLI install · Node.js 22.20+, installs the whole folder</span>
+          <button class="copy-btn small" id="copyUrlBtn" type="button" aria-live="polite">Copy CLI command</button>
+        </div>
+        <div class="install-link">
+          <code id="folderUrl">npx skills add Ewen2015/ewen-collage --skill collage-art -g -y</code>
+        </div>
+      </div>
+      <div>
+        <div class="install-block-head">
+          <span class="install-link-label">Portable package · a ZIP of the whole folder; upload it to your agent's skill installer</span>
+          <span style="display:inline-flex;gap:10px;flex-wrap:wrap">
+            <button class="copy-btn small" id="zipCopyBtn" type="button" aria-live="polite">Copy package URL</button>
+            <a class="copy-btn small" id="downloadSkill" href="https://github.com/Ewen2015/ewen-collage/raw/main/dist/collage-art.skill" download style="text-decoration:none;display:inline-block">Download .skill</a>
+          </span>
+        </div>
+        <div class="install-link">
+          <code id="zipUrl">https://github.com/Ewen2015/ewen-collage/raw/main/dist/collage-art.skill</code>
+        </div>
+      </div>
+    </div>
+    <p class="prompt-hint">After installing, run <code>bash install.sh</code> (or <code>install.ps1</code> on Windows) once from the installed folder — it installs Pillow and NumPy and runs <code>check_setup.py</code> to verify every bundled file. Network is optional afterwards: the 16 preset styles work offline; only Wikimedia Commons sourcing needs a connection. Drop <code>-g</code> from the CLI command to install into the current project instead of globally. See the <a href="#install">install guide</a> for the manual path and a test run.</p>
   </div>
 </section>
 
@@ -307,42 +337,45 @@ Text:
   <div class="wrap install-grid">
     <div>
       <h2>Install it.</h2>
-      <p class="lede">Three short steps. No API keys, no account, no image-generation credits.</p>
+      <p class="lede">Use the standard CLI, or unpack the portable package yourself. Either way the whole folder lands in your agent's skills directory.</p>
       <ol class="steps">
         <li>
           <div>
-            <h3>Get the skill</h3>
-            <p>Copy <code>skills/collage-art/</code> into your skills directory, or install the repo as a plugin using the included manifest.</p>
-<pre class="code"><span class="c"># clone the repo</span>
-git clone https://github.com/Ewen2015/ewen-collage.git
-cd ewen-collage
+            <h3>Install the complete package</h3>
+            <p>The open agent-skills CLI discovers <code>skills/collage-art/</code> in this repo and links or copies everything inside it. <code>-g</code> installs it for all projects; omit it for the current project only.</p>
+<pre class="code"><span class="c"># Node.js 22.20+ — interactive, picks the agents it finds</span>
+npx skills add Ewen2015/ewen-collage --skill collage-art -g
 
-<span class="c"># copy the skill into your skills folder</span>
-cp -r skills/collage-art ~/.claude/skills/</pre>
+<span class="c"># or a direct folder URL / archive, for any agent</span>
+npx skills add https://github.com/Ewen2015/ewen-collage/tree/main/skills/collage-art
+npx skills add https://github.com/Ewen2015/ewen-collage/raw/main/dist/collage-art.skill</pre>
           </div>
         </li>
         <li>
           <div>
-            <h3>Install the Python dependencies</h3>
-            <p>The renderer needs Pillow and NumPy. The search and composition scripts use only the standard library.</p>
-<pre class="code">python3 -m pip install Pillow numpy</pre>
+            <h3>Manual path: unzip into a skills folder</h3>
+            <p>No CLI needed. The <code>.skill</code> file is a ZIP with <code>SKILL.md</code> at its root, beside <code>references/</code>, <code>scripts/</code>, <code>requirements.txt</code> and the installers. Replace <code>AGENT_SKILLS</code> with your agent's directory, for example <code>~/.claude/skills</code>, <code>~/.codex/skills</code> or <code>./.agents/skills</code>.</p>
+<pre class="code">mkdir -p AGENT_SKILLS/collage-art
+curl -L -o collage-art.skill \
+  https://github.com/Ewen2015/ewen-collage/raw/main/dist/collage-art.skill
+unzip -o collage-art.skill -d AGENT_SKILLS/collage-art
+cd AGENT_SKILLS/collage-art &amp;&amp; bash install.sh</pre>
           </div>
         </li>
         <li>
           <div>
-            <h3>Ask for a collage</h3>
-            <p>Paste the prompt above, or just talk to your agent normally. Network access is needed only for the autonomous image search.</p>
-<pre class="code"><span class="c"># or run the renderer directly</span>
-python3 skills/collage-art/scripts/collage.py --list
-python3 skills/collage-art/scripts/collage.py \
-  --preset cubist-grid --out cubist.png --seed 4</pre>
+            <h3>Verify, then ask for a collage</h3>
+            <p><code>install.sh</code> installs Pillow and NumPy and runs the setup check. The check confirms all bundled files, fonts and the renderer; then give your agent a theme or a paragraph.</p>
+<pre class="code">python3 scripts/check_setup.py
+python3 scripts/collage.py --preset cubist-grid --out cubist.png --seed 4</pre>
           </div>
         </li>
       </ol>
     </div>
     <aside class="install-aside">
-      <p>The skill is a folder with a <code>SKILL.md</code> workflow, five reference documents, and three scripts. Nothing is a black box: each run leaves a <code>concept.json</code>, a <code>SOURCES.json</code> credit manifest, a <code>recipe.json</code> layout and a plain-language rationale you can edit and rerun.</p>
-      <p>Python 3.9 or newer. Works offline with procedural paper sources; the Wikimedia Commons search simply needs a network connection. All code and generated textures are MIT-licensed.</p>
+      <p>What an install must contain: the <code>SKILL.md</code> workflow, five reference documents, four scripts, <code>requirements.txt</code>, <code>install.sh</code>, <code>install.ps1</code> and an <code>assets/</code> folder. A lone <code>SKILL.md</code> is not an install — the scripts and references are the part that actually makes the artwork.</p>
+      <p>Nothing is a black box: each run leaves a <code>concept.json</code>, a <code>SOURCES.json</code> credit manifest, a <code>recipe.json</code> layout and a plain-language rationale you can edit and rerun.</p>
+      <p>Python 3.9 or newer. Procedural presets work offline; the Wikimedia Commons search needs a network connection. All code and generated textures are MIT-licensed.</p>
       <p class="small">Source photographs keep their own licences. CC BY / BY-SA works require attribution; BY-SA may also require the combined work to be shared alike. Check <code>SOURCES.json</code> before publishing a finished piece.</p>
       <p><a href="https://github.com/Ewen2015/ewen-collage">Read the full documentation on GitHub</a> · <a href="https://github.com/Ewen2015/ewen-collage/blob/main/skills/collage-art/SKILL.md">Read SKILL.md</a></p>
     </aside>
@@ -373,7 +406,7 @@ python3 skills/collage-art/scripts/collage.py \
 
 <footer>
   <div class="wrap">
-    <span>collage-art · a Claude skill by Ewen</span>
+    <span>collage-art · an agent skill by Ewen</span>
     <span>Paper, scissors, and a paragraph.</span>
   </div>
 </footer>
@@ -431,21 +464,44 @@ WORKS.forEach(([file,title,meta,tag,desc]) => {
   grid.appendChild(fig);
 });
 
-const btn = document.getElementById('copyBtn');
-const promptText = document.getElementById('prompt').textContent;
-btn.addEventListener('click', async () => {
+const installUrl = document.getElementById('installUrl').textContent.trim();
+const folderUrl = document.getElementById('folderUrl').textContent.trim();
+const zipUrl = document.getElementById('zipUrl').textContent.trim();
+const agentCommand = 'npx skills add ' + installUrl + ' -g -y';
+const copyBtn = document.getElementById('copyBtn');
+const heroCopy = document.getElementById('heroCopy');
+const copyUrlBtn = document.getElementById('copyUrlBtn');
+const copyAgentBtn = document.getElementById('copyAgentBtn');
+const copyLinkBtn = document.getElementById('copyLinkBtn');
+const zipCopyBtn = document.getElementById('zipCopyBtn');
+
+async function copyText(btn, text, label) {
   try {
-    await navigator.clipboard.writeText(promptText);
+    await navigator.clipboard.writeText(text);
     btn.textContent = 'Copied';
   } catch (e) {
-    const r = document.createRange();
-    r.selectNodeContents(document.getElementById('prompt'));
-    const sel = window.getSelection();
-    sel.removeAllRanges(); sel.addRange(r);
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    document.body.appendChild(ta);
+    ta.select();
     btn.textContent = 'Selected — press ⌘C';
+    setTimeout(() => ta.remove(), 2400);
   }
-  setTimeout(() => { btn.textContent = 'Copy prompt'; }, 2200);
-});
+  setTimeout(() => { btn.textContent = label; }, 2200);
+}
+[copyBtn, heroCopy].forEach(b => b.addEventListener('click', () =>
+  copyText(b, agentCommand, 'Copy agent command')));
+copyUrlBtn.addEventListener('click', () =>
+  copyText(copyUrlBtn, folderUrl, 'Copy CLI command'));
+copyAgentBtn.addEventListener('click', () =>
+  copyText(copyAgentBtn, agentCommand, 'Copy agent command'));
+copyLinkBtn.addEventListener('click', () =>
+  copyText(copyLinkBtn, installUrl, 'Copy link'));
+zipCopyBtn.addEventListener('click', () =>
+  copyText(zipCopyBtn, zipUrl, 'Copy package URL'));
 </script>
 </body>
 </html>

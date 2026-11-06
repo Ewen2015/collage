@@ -8,10 +8,10 @@ description: >-
   the ideas and imagery implicit in the text, finds its own source photographs,
   and composites them into a printed-paper assemblage.
 license: MIT
-compatibility: Requires Python 3.9+, Pillow, NumPy, and network access for image sourcing.
+compatibility: Requires Python 3.9+; run the bundled install.sh once to install Pillow and NumPy. Network access is needed only for autonomous image sourcing.
 metadata:
   author: Ewen
-  version: 0.1.0
+  version: 0.1.1
   repo: ewen-collage
 ---
 
@@ -20,6 +20,30 @@ metadata:
 You are given a topic or a body of text. Your job is to produce a **collage
 artwork**, not a description of one. Work end to end: read → extract → find
 imagery → compose → render → verify → explain.
+
+## This skill is a folder, not a single file
+
+An install is only complete if `SKILL.md`, `references/`, `scripts/`,
+`requirements.txt`, `install.sh`, `install.ps1` and `scripts/check_setup.py`
+are all present in the same directory. If any of them are missing, re-install
+the whole package instead of copying `SKILL.md` on its own.
+
+## Step 0 — Check the install (do this once)
+
+```bash
+python3 scripts/check_setup.py
+```
+
+It verifies the Python version, every bundled file, Pillow, NumPy, font
+resolution and a renderer smoke test. If anything is missing:
+
+```bash
+bash install.sh          # macOS / Linux: installs requirements.txt, then re-runs the check
+# Windows: powershell -ExecutionPolicy Bypass -File install.ps1
+```
+
+The installers need a network connection only for the two Python packages;
+every other part of the skill works offline.
 
 The guiding idea comes from the reference material in `references/`: collage is
 an assemblage of materials that already have a history (Rise Art, Artsy), and
@@ -149,6 +173,8 @@ require the combined work to be shared alike). Point the user to
 
 | Want | Command |
 | --- | --- |
+| Verify the install | `python3 scripts/check_setup.py` |
+| Install Python dependencies | `bash install.sh` |
 | See all built-in styles | `python3 scripts/collage.py --list` |
 | Render a preset | `python3 scripts/collage.py --preset dada-montage --out out.png` |
 | Save a preset as an editable recipe | `python3 scripts/collage.py --preset cubist-grid --out x.png --dump x.json` |
@@ -158,6 +184,10 @@ require the combined work to be shared alike). Point the user to
 
 ## Files in this skill
 
+`requirements.txt` declares Pillow and NumPy. `install.sh` (macOS/Linux) and
+`install.ps1` (Windows) install them and run `scripts/check_setup.py`.
+`scripts/check_setup.py` verifies every bundled file, the Python version,
+font resolution and a renderer smoke test.
 `scripts/collage.py` is the renderer (Pillow + NumPy, no network).
 `scripts/source_assets.py` is the Commons search/downloader (stdlib only).
 `scripts/theme_to_recipe.py` compiles a concept into a recipe (stdlib only).
@@ -167,6 +197,9 @@ require the combined work to be shared alike). Point the user to
 `references/prompts.md` gives prompt patterns for when a text-to-image model is
 a better fit than the renderer.
 `references/concept-schema.md` is the concept JSON contract.
+`assets/` is the optional place for user-provided source images.
 
 A complete worked example (theme → concept → sourced assets → recipe →
-rationale → final PNG) lives in the repo's `examples/demo/` directory.
+rationale → final PNG) lives in the repo's `examples/demo/` directory. The
+installable package itself is the whole `collage-art/` folder, packaged as
+`collage-art.skill` (a ZIP whose files sit at the archive root).
