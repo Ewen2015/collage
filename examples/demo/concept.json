@@ -1,0 +1,13 @@
+{
+  "theme": "潮汐与城市",
+  "headline": "TIDE / CITY",
+  "kicker": "A NOTE ON DISTANCE",
+  "statement": "The returning tide meets the sleeping city, suggesting a memory that keeps coming back.",
+  "strategy": "surrealism",
+  "palette": ["#16283a", "#d94f36", "#4a86a8", "#f0c94b"],
+  "motifs": [
+    {"id": "tide", "query": "breaking ocean wave water", "role": "hero", "why": "the returning tide, the thing that keeps coming back"},
+    {"id": "city", "query": "city skyline night silhouette", "role": "ground", "why": "the sleeping city, the fixed thing"},
+    {"id": "moon", "query": "moon crater lunar surface", "role": "satellite", "why": "the distant witness; one impossible object inside the arch"}
+  ]
+}

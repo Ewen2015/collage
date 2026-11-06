@@ -1,0 +1,53 @@
+{
+  "theme": "潮汐与城市",
+  "statement": "The returning tide meets the sleeping city, suggesting a memory that keeps coming back.",
+  "source": "Wikimedia Commons",
+  "note": "Each entry keeps its own licence. CC BY / BY-SA works require attribution; BY-SA may also require the combined work to be shared alike.",
+  "assets": [
+    {
+      "id": "tide-01",
+      "motif": "tide",
+      "query": "breaking ocean wave water",
+      "role": "hero",
+      "why": "the returning tide, the thing that keeps coming back",
+      "file": "tide-01.jpg",
+      "bytes": 503494,
+      "title": "File:Breaking wave July 2007-1.jpg",
+      "artist": "Alvesgaspar",
+      "license": "CC BY 2.5",
+      "license_url": "https://creativecommons.org/licenses/by/2.5",
+      "page": "https://commons.wikimedia.org/wiki/File:Breaking_wave_July_2007-1.jpg",
+      "origin_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9c/Breaking_wave_July_2007-1.jpg/1920px-Breaking_wave_July_2007-1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+    },
+    {
+      "id": "city-01",
+      "motif": "city",
+      "query": "city skyline night silhouette",
+      "role": "ground",
+      "why": "the sleeping city, the fixed thing",
+      "file": "city-01.jpg",
+      "bytes": 134771,
+      "title": "File:Melbourne City Skyline 2012.jpg",
+      "artist": "Fafibelord",
+      "license": "CC0",
+      "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "page": "https://commons.wikimedia.org/wiki/File:Melbourne_City_Skyline_2012.jpg",
+      "origin_url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Melbourne_City_Skyline_2012.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+    },
+    {
+      "id": "moon-01",
+      "motif": "moon",
+      "query": "moon crater lunar surface",
+      "role": "satellite",
+      "why": "the distant witness; one impossible object inside the arch",
+      "file": "moon-01.jpg",
+      "bytes": 999037,
+      "title": "File:Terraced Wall Crater on the Lunar Limb - GPN-2000-001487.jpg",
+      "artist": "NASA Apollo",
+      "license": "Public domain",
+      "license_url": "",
+      "page": "https://commons.wikimedia.org/wiki/File:Terraced_Wall_Crater_on_the_Lunar_Limb_-_GPN-2000-001487.jpg",
+      "origin_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Terraced_Wall_Crater_on_the_Lunar_Limb_-_GPN-2000-001487.jpg/1920px-Terraced_Wall_Crater_on_the_Lunar_Limb_-_GPN-2000-001487.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+    }
+  ]
+}

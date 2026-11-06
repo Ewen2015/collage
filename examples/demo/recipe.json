@@ -1,0 +1,107 @@
+{
+  "width": 1200,
+  "height": 1500,
+  "paper": "cold",
+  "seed": 11,
+  "pieces": [
+    {
+      "source": "examples/demo/assets/tide-01.jpg",
+      "box": [
+        240,
+        135,
+        720,
+        720
+      ],
+      "rotate": -0.7,
+      "mask": "arch",
+      "shadow": true
+    },
+    {
+      "source": "solid",
+      "palette": [
+        "#d94f36"
+      ],
+      "box": [
+        840,
+        420,
+        240,
+        240
+      ],
+      "mask": "circle",
+      "halftone": true,
+      "cell": 10,
+      "opacity": 0.55,
+      "rotate": 0
+    },
+    {
+      "source": "examples/demo/assets/city-01.jpg",
+      "box": [
+        96,
+        854,
+        1008,
+        225
+      ],
+      "rotate": 4.7,
+      "mask": "circle",
+      "shadow": true
+    },
+    {
+      "source": "examples/demo/assets/moon-01.jpg",
+      "box": [
+        528,
+        900,
+        132,
+        210
+      ],
+      "rotate": 3.8,
+      "mask": "torn",
+      "shadow": false
+    },
+    {
+      "text": "TIDE / CITY",
+      "font": "serif-italic",
+      "size": 150,
+      "tracking": 9,
+      "color": "#16283a",
+      "box": [
+        84,
+        1297,
+        1032,
+        135
+      ],
+      "rotate": 2.3
+    },
+    {
+      "text": "A NOTE ON DISTANCE",
+      "font": "mono",
+      "size": 38,
+      "tracking": 8,
+      "color": "#d94f36",
+      "box": [
+        96,
+        1215,
+        1008,
+        60
+      ],
+      "backing": true
+    }
+  ],
+  "tape": [
+    [
+      960,
+      450,
+      190,
+      46,
+      -11
+    ]
+  ],
+  "marks": true,
+  "mark_density": 0.3,
+  "_meta": {
+    "strategy": "surrealism",
+    "format": "poster",
+    "statement": "The returning tide meets the sleeping city, suggesting a memory that keeps coming back.",
+    "headline": "TIDE / CITY",
+    "assets_used": 3
+  }
+}
