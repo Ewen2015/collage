@@ -1,0 +1,28 @@
+{
+  "name": "night-train",
+  "theme": "夜行列车",
+  "headline": "NIGHT TRAIN",
+  "kicker": "A LETTER NEVER SENT",
+  "statement": "A night train meets an unopened letter, suggesting a departure that never quite happened.",
+  "strategy": "dada",
+  "palette": [
+    "#26241f",
+    "#b23a2c",
+    "#3a5f8a",
+    "#c9962e"
+  ],
+  "motifs": [
+    {
+      "id": "rail",
+      "query": "railway track night",
+      "role": "hero",
+      "why": "the departure"
+    },
+    {
+      "id": "letter",
+      "query": "old envelope letter paper",
+      "role": "ground",
+      "why": "the unsent words"
+    }
+  ]
+}

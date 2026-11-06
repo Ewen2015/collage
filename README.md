@@ -12,7 +12,7 @@ halftone, torn edges, tape, pencil marks and all.
 "潮水一次次回来，城市却装作睡着"  →  TIDE / CITY  →  [900×1125 PNG]
 ```
 
-[See the worked example](examples/demo/tide-city.png) · [Its decision log](examples/demo/recipe-rationale.md) · [Its image credits](examples/demo/assets/SOURCES.json)
+[See the worked example](examples/demo/tide-city.png) · [Its decision log](examples/demo/recipe-rationale.md) · [Its image credits](examples/demo/assets/SOURCES.json) · **[Project page and full gallery →](https://ewen2015.github.io/ewen-collage/)**
 
 ## Why the names are split
 
@@ -81,15 +81,16 @@ ewen-collage/
 │       │   ├── source_assets.py     Commons search + attribution manifest
 │       │   └── theme_to_recipe.py   concept → recipe compiler
 │       └── assets/                  optional local source images
+├── docs/                            GitHub Pages site (index.html + 19 works)
 └── examples/
-    ├── gallery/                     seven built-in style presets
+    ├── gallery/                     16 built-in style presets
     └── demo/                        full theme → artwork worked example
 ```
 
 ## Gallery
 
-Seven built-in presets, each encoding a different art-historical strategy
-rather than just a colour scheme.
+Sixteen built-in presets, each encoding a different art-historical strategy
+rather than just a colour scheme. [Browse all of them on the project page](https://ewen2015.github.io/ewen-collage/#gallery), or see the first seven here.
 
 | | | |
 | --- | --- | --- |

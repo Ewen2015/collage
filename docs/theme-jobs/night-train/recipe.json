@@ -1,0 +1,127 @@
+{
+  "width": 1200,
+  "height": 1500,
+  "paper": "newsprint",
+  "seed": 23,
+  "pieces": [
+    {
+      "source": "docs/theme-jobs/night-train/assets/tide-01.jpg",
+      "box": [
+        120,
+        120,
+        912,
+        705
+      ],
+      "rotate": 7.1,
+      "mask": "torn",
+      "shadow": true
+    },
+    {
+      "source": "solid",
+      "palette": [
+        "#b23a2c"
+      ],
+      "box": [
+        840,
+        420,
+        240,
+        240
+      ],
+      "mask": "circle",
+      "halftone": true,
+      "cell": 10,
+      "opacity": 0.55,
+      "rotate": 0
+    },
+    {
+      "source": "docs/theme-jobs/night-train/assets/city-01.jpg",
+      "box": [
+        72,
+        720,
+        528,
+        270
+      ],
+      "rotate": 16.6,
+      "mask": "strip",
+      "shadow": true
+    },
+    {
+      "source": "newsprint",
+      "box": [
+        564,
+        780,
+        564,
+        420
+      ],
+      "rotate": -14.0,
+      "mask": "cut",
+      "shadow": false,
+      "palette": [
+        "#3a5f8a",
+        "#c9962e"
+      ]
+    },
+    {
+      "source": "grid",
+      "box": [
+        96,
+        1020,
+        1008,
+        300
+      ],
+      "rotate": -15.5,
+      "mask": "torn",
+      "shadow": false,
+      "palette": [
+        "#c9962e",
+        "#26241f"
+      ]
+    },
+    {
+      "text": "NIGHT TRAIN",
+      "font": "sans-cond",
+      "size": 150,
+      "tracking": 9,
+      "color": "#26241f",
+      "box": [
+        84,
+        1297,
+        1032,
+        135
+      ],
+      "rotate": -2.2
+    },
+    {
+      "text": "A LETTER NEVER SENT",
+      "font": "mono",
+      "size": 38,
+      "tracking": 8,
+      "color": "#b23a2c",
+      "box": [
+        96,
+        1215,
+        1008,
+        60
+      ],
+      "backing": true
+    }
+  ],
+  "tape": [
+    [
+      960,
+      450,
+      190,
+      46,
+      -11
+    ]
+  ],
+  "marks": true,
+  "mark_density": 1.5,
+  "_meta": {
+    "strategy": "dada",
+    "format": "poster",
+    "statement": "A night train meets an unopened letter, suggesting a departure that never quite happened.",
+    "headline": "NIGHT TRAIN",
+    "assets_used": 2
+  }
+}

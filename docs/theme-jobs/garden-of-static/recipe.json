@@ -1,0 +1,111 @@
+{
+  "width": 1200,
+  "height": 1500,
+  "paper": "cold",
+  "seed": 23,
+  "pieces": [
+    {
+      "source": "docs/theme-jobs/garden-of-static/assets/tide-01.jpg",
+      "box": [
+        240,
+        135,
+        720,
+        720
+      ],
+      "rotate": 2.2,
+      "mask": "arch",
+      "shadow": true
+    },
+    {
+      "source": "solid",
+      "palette": [
+        "#d94f36"
+      ],
+      "box": [
+        840,
+        420,
+        240,
+        240
+      ],
+      "mask": "circle",
+      "halftone": true,
+      "cell": 10,
+      "opacity": 0.55,
+      "rotate": 0
+    },
+    {
+      "source": "docs/theme-jobs/garden-of-static/assets/city-01.jpg",
+      "box": [
+        96,
+        854,
+        1008,
+        225
+      ],
+      "rotate": 5.2,
+      "mask": "circle",
+      "shadow": true
+    },
+    {
+      "source": "newsprint",
+      "box": [
+        528,
+        900,
+        132,
+        210
+      ],
+      "rotate": -4.4,
+      "mask": "torn",
+      "shadow": false,
+      "palette": [
+        "#4a86a8",
+        "#f0c94b"
+      ]
+    },
+    {
+      "text": "STATIC GARDEN",
+      "font": "serif-italic",
+      "size": 150,
+      "tracking": 9,
+      "color": "#16283a",
+      "box": [
+        84,
+        1297,
+        1032,
+        135
+      ],
+      "rotate": -2.2
+    },
+    {
+      "text": "GROWN FROM NOISE",
+      "font": "mono",
+      "size": 38,
+      "tracking": 8,
+      "color": "#d94f36",
+      "box": [
+        96,
+        1215,
+        1008,
+        60
+      ],
+      "backing": true
+    }
+  ],
+  "tape": [
+    [
+      960,
+      450,
+      190,
+      46,
+      -11
+    ]
+  ],
+  "marks": true,
+  "mark_density": 0.3,
+  "_meta": {
+    "strategy": "surrealism",
+    "format": "poster",
+    "statement": "A garden meets radio static, suggesting nature that remembers a signal.",
+    "headline": "STATIC GARDEN",
+    "assets_used": 2
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "theme": "夜行列车",
+  "statement": "A night train meets an unopened letter, suggesting a departure that never quite happened.",
+  "assets": [
+    {
+      "id": "rail-01",
+      "motif": "rail",
+      "query": "breaking ocean wave water",
+      "role": "hero",
+      "why": "the returning tide, the thing that keeps coming back",
+      "file": "tide-01.jpg",
+      "bytes": 503494,
+      "title": "File:Breaking wave July 2007-1.jpg",
+      "artist": "Alvesgaspar",
+      "license": "CC BY 2.5",
+      "license_url": "https://creativecommons.org/licenses/by/2.5",
+      "page": "https://commons.wikimedia.org/wiki/File:Breaking_wave_July_2007-1.jpg",
+      "origin_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9c/Breaking_wave_July_2007-1.jpg/1920px-Breaking_wave_July_2007-1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+    },
+    {
+      "id": "letter-01",
+      "motif": "letter",
+      "query": "city skyline night silhouette",
+      "role": "ground",
+      "why": "the sleeping city, the fixed thing",
+      "file": "city-01.jpg",
+      "bytes": 134771,
+      "title": "File:Melbourne City Skyline 2012.jpg",
+      "artist": "Fafibelord",
+      "license": "CC0",
+      "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "page": "https://commons.wikimedia.org/wiki/File:Melbourne_City_Skyline_2012.jpg",
+      "origin_url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Melbourne_City_Skyline_2012.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+    }
+  ],
+  "note": "Demo-only reuse of the three Commons assets credited in examples/demo/assets/SOURCES.json."
+}

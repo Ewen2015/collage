@@ -1,0 +1,28 @@
+{
+  "name": "garden-of-static",
+  "theme": "静电花园",
+  "headline": "STATIC GARDEN",
+  "kicker": "GROWN FROM NOISE",
+  "statement": "A garden meets radio static, suggesting nature that remembers a signal.",
+  "strategy": "surrealism",
+  "palette": [
+    "#16283a",
+    "#d94f36",
+    "#4a86a8",
+    "#f0c94b"
+  ],
+  "motifs": [
+    {
+      "id": "leaf",
+      "query": "fern leaf botanical",
+      "role": "hero",
+      "why": "the growing thing"
+    },
+    {
+      "id": "wave",
+      "query": "radio waveform oscilloscope",
+      "role": "satellite",
+      "why": "the remembered signal"
+    }
+  ]
+}

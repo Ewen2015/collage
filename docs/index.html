@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>collage-art — a skill by Ewen</title>
+<meta name="description" content="Give a Claude agent a theme or a paragraph. Get a finished collage artwork: the ideas extracted, licensed images found, and paper cut and pasted.">
+<meta property="og:title" content="collage-art — a skill by Ewen">
+<meta property="og:description" content="Text in, collage out. An open-source Claude skill with autonomous image sourcing.">
+<meta property="og:image" content="gallery/tide-city.png">
+<style>
+:root{
+  --paper:#ffffff;
+  --ink:#111111;
+  --muted:#6b6b6b;
+  --hair:#d8d8d5;
+  --accent:#c8412f;
+  --wash:#f3f2ee;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:"Helvetica Neue",Helvetica,Arial,"Noto Sans",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img{display:block;max-width:100%}
+.wrap{max-width:1320px;margin:0 auto;padding:0 40px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.skip{position:absolute;left:-9999px;top:0;background:var(--ink);color:#fff;padding:10px 16px;z-index:20}
+.skip:focus{left:12px;top:12px}
+
+/* masthead */
+.masthead{border-bottom:1px solid var(--hair);position:relative;z-index:5}
+.masthead .wrap{display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+  padding-top:20px;padding-bottom:18px}
+.wordmark{font-size:17px;font-weight:600;letter-spacing:-.025em;text-decoration:none}
+.wordmark span{font-weight:400;color:var(--muted)}
+.nav{display:flex;gap:30px;font-size:14px}
+.nav a{text-decoration:none;color:var(--muted)}
+.nav a:hover{color:var(--ink)}
+.nav .repo{color:var(--ink);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+
+/* hero: an assemblage, not a text block */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--hair);
+  background:var(--wash);min-height:660px}
+.hero-grain{position:absolute;inset:0;opacity:.5;pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/></svg>")}
+.hero .wrap{position:relative;min-height:660px;display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:40px;align-items:center}
+.hero-copy{padding:72px 0 80px;max-width:520px;z-index:3}
+.hero-copy h1{font-family:var(--serif);font-weight:400;font-size:clamp(46px,5.4vw,78px);
+  line-height:.98;letter-spacing:-.035em;margin:0 0 28px}
+.hero-copy h1 em{font-style:italic;display:block;font-size:.72em;letter-spacing:-.02em;margin-top:12px}
+.hero-copy p{font-size:19px;line-height:1.6;margin:0 0 34px;max-width:46ch;color:#333}
+.hero-actions{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.btn{display:inline-block;background:var(--ink);color:#fff;text-decoration:none;
+  padding:13px 22px;font-size:15px;border:1px solid var(--ink);border-radius:0;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--accent);border-color:var(--accent)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--hair)}
+.btn.ghost:hover{border-color:var(--ink);background:transparent}
+.btn .arrow{display:none}
+.hero-note{font-size:13px;color:var(--muted);margin:18px 0 0}
+
+/* the paper assemblage */
+.assemblage{position:relative;height:620px;z-index:2}
+.scrap{position:absolute;background:#fff;padding:9px 9px 0;box-shadow:0 16px 34px rgba(0,0,0,.16)}
+.scrap img{width:100%;height:100%;object-fit:cover}
+.scrap.a{width:252px;height:315px;left:2%;top:36px;transform:rotate(-7deg);z-index:2}
+.scrap.b{width:212px;height:265px;right:3%;top:8px;transform:rotate(6deg);z-index:1}
+.scrap.c{width:230px;height:230px;left:26%;top:250px;transform:rotate(3deg);z-index:4}
+.scrap.d{width:172px;height:215px;right:16%;top:300px;transform:rotate(-9deg);z-index:3;background:#f1e9d6}
+.tape{position:absolute;width:126px;height:34px;background:rgba(222,207,166,.72);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);z-index:6}
+.tape.t1{left:20%;top:225px;transform:rotate(-14deg)}
+.tape.t2{right:22%;top:278px;transform:rotate(11deg)}
+.assemblage-label{position:absolute;left:0;bottom:6px;font-size:12px;color:var(--muted);z-index:7}
+
+/* sections */
+section{padding:88px 0;border-bottom:1px solid var(--hair)}
+h2{font-family:var(--serif);font-weight:400;font-size:clamp(32px,3.4vw,46px);
+  letter-spacing:-.025em;line-height:1.1;margin:0 0 18px}
+.lede{font-size:19px;line-height:1.65;max-width:64ch;color:#333;margin:0 0 46px}
+.intro-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:80px}
+.intro-grid .body p{max-width:62ch;margin:0 0 18px;color:#333}
+.intro-grid .body p:first-child{font-size:19px;color:var(--ink)}
+.rule-list{list-style:none;margin:0;padding:0;border-top:1px solid var(--hair)}
+.rule-list li{padding:16px 0;border-bottom:1px solid var(--hair);display:grid;
+  grid-template-columns:150px 1fr;gap:20px;font-size:15px}
+.rule-list b{font-weight:600}
+.rule-list span{color:var(--muted)}
+
+/* prompt block */
+.agent{background:var(--wash)}
+.agent-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:28px}
+.agent-head .lede{margin:0;max-width:58ch}
+.copy-btn{background:var(--ink);color:#fff;border:1px solid var(--ink);padding:12px 20px;
+  font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.copy-btn:hover{background:var(--accent);border-color:var(--accent)}
+.copy-btn[aria-live]{min-width:132px}
+.prompt{background:#fff;border:1px solid var(--hair);padding:30px 34px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;line-height:1.75;
+  white-space:pre-wrap;color:#222;margin:0;max-width:100%;overflow-x:auto}
+.prompt-hint{font-size:13px;color:var(--muted);margin:16px 0 0;max-width:70ch}
+
+/* gallery grid: works, not cards */
+.gallery .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.count{font-size:14px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:52px 28px;margin-top:8px}
+.work{margin:0}
+.work a{display:block;text-decoration:none}
+.frame{background:var(--wash);display:flex;align-items:center;justify-content:center;
+  min-height:300px;overflow:hidden;border:1px solid #ecebe6}
+.frame img{width:auto;height:auto;max-width:100%;max-height:400px;object-fit:contain;
+  transition:transform .35s ease}
+.work a:hover .frame img{transform:scale(1.025)}
+.work figcaption{padding-top:14px}
+.title{font-family:var(--serif);font-size:19px;line-height:1.25;margin:0 0 4px}
+.meta{font-size:13px;color:var(--muted);margin:0;line-height:1.5}
+.meta .tag{color:var(--ink)}
+.gallery-note{font-size:13px;color:var(--muted);max-width:80ch;margin:52px 0 0}
+
+/* install */
+.install-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:80px}
+.steps{list-style:none;margin:0;padding:0;counter-reset:step}
+.steps li{border-top:1px solid var(--hair);padding:22px 0 26px;display:grid;
+  grid-template-columns:44px 1fr;gap:14px}
+.steps li:last-child{border-bottom:1px solid var(--hair)}
+.steps li::before{counter-increment:step;content:counter(step,decimal-leading-zero);
+  font-size:12px;color:var(--muted);padding-top:5px}
+.steps h3{font-size:17px;font-weight:600;margin:0 0 8px}
+.steps p{font-size:15px;color:var(--muted);margin:0 0 12px;max-width:58ch}
+pre.code{background:var(--wash);border:1px solid var(--hair);padding:16px 18px;margin:0;
+  overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:13px;line-height:1.7;color:#222}
+pre.code .c{color:#8a8a86}
+.install-aside p{font-size:15px;color:#333;max-width:56ch;margin:0 0 18px}
+.install-aside .small{font-size:13px;color:var(--muted)}
+.install-aside a{text-decoration:underline;text-underline-offset:3px}
+
+/* credits / footer */
+.credits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px}
+.credits h3{font-size:14px;font-weight:600;margin:0 0 12px}
+.credits p,.credits li{font-size:14px;color:var(--muted);line-height:1.7;margin:0}
+.credits ul{list-style:none;padding:0;margin:0}
+.credits a{text-decoration:underline;text-underline-offset:3px}
+footer{border-top:1px solid var(--hair);padding:30px 0 46px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+@media (max-width:1100px){
+  .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .hero .wrap{grid-template-columns:1fr;min-height:0}
+  .hero-copy{padding:64px 0 20px;max-width:640px}
+  .assemblage{height:480px;margin-bottom:40px}
+  .scrap.a{width:190px;height:238px;left:6%}
+  .scrap.b{width:160px;height:200px;right:8%}
+  .scrap.c{width:175px;height:175px;left:32%;top:190px}
+  .scrap.d{width:130px;height:162px;right:20%;top:230px}
+  .intro-grid,.install-grid{gap:44px}
+}
+@media (max-width:760px){
+  .wrap{padding:0 22px}
+  .masthead .wrap{padding-top:16px;padding-bottom:14px}
+  .nav{gap:16px;font-size:13px}
+  .nav .hide-sm{display:none}
+  .hero-copy h1{font-size:46px}
+  .hero-copy p{font-size:17px}
+  section{padding:60px 0}
+  .intro-grid,.install-grid{grid-template-columns:1fr;gap:38px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:34px 18px}
+  .frame{min-height:210px}
+  .frame img{max-height:280px}
+  .title{font-size:17px}
+  .rule-list li{grid-template-columns:1fr;gap:2px}
+  .credits{grid-template-columns:1fr;gap:26px}
+  .prompt{padding:20px;font-size:12.5px}
+  .assemblage{height:390px}
+  .scrap.a{width:145px;height:181px;left:2%}
+  .scrap.b{width:125px;height:156px;right:2%}
+  .scrap.c{width:140px;height:140px;left:30%;top:150px}
+  .scrap.d{width:105px;height:131px;right:14%;top:190px}
+  .tape{width:96px;height:27px}
+  .tape.t1{left:22%;top:165px}.tape.t2{right:20%;top:200px}
+}
+@media (max-width:430px){
+  .grid{grid-template-columns:1fr;gap:32px}
+  .frame img{max-height:360px}
+  .hero-actions{gap:12px}
+  .btn{padding:11px 16px;font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .frame img{transition:none}
+  .work a:hover .frame img{transform:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="wrap">
+    <a class="wordmark" href="#top">collage-art <span>/ by Ewen</span></a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#about">About</a>
+      <a href="#agent">Prompt</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#install">Install</a>
+      <a class="repo hide-sm" href="https://github.com/Ewen2015/ewen-collage">GitHub ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div id="top" class="hero">
+  <div class="hero-grain" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="hero-copy">
+      <h1>Text in.<em>Collage out.</em></h1>
+      <p>Give a Claude agent a theme, a brief, or a paragraph. It finds the ideas worth seeing, searches for its own licensed source images, and cuts and pastes them into a finished artwork.</p>
+      <div class="hero-actions">
+        <a class="btn" href="#agent">Copy the prompt</a>
+        <a class="btn ghost" href="#gallery">See the work</a>
+      </div>
+      <p class="hero-note">An open-source Claude skill · Python, Pillow, NumPy · MIT</p>
+    </div>
+
+    <div class="assemblage" aria-label="A collage of four works from the gallery">
+      <figure class="scrap a"><img src="gallery/tide-city.png" alt="Tide / City, a wave inside a blue arch above a city skyline"></figure>
+      <figure class="scrap b"><img src="gallery/cubist-grid.png" alt="Papier Collé, faceted planes, newsprint and a cut letter R"></figure>
+      <figure class="scrap c"><img src="gallery/pop-halftone.png" alt="WOW!, a halftone circle on pink paper with a yellow torn strip"></figure>
+      <figure class="scrap d"><img src="gallery/decollage-poster.png" alt="Affiche, torn kraft and striped poster layers"></figure>
+      <span class="tape t1" aria-hidden="true"></span>
+      <span class="tape t2" aria-hidden="true"></span>
+      <span class="assemblage-label">Four of nineteen works, cut and taped here for the occasion.</span>
+    </div>
+  </div>
+</div>
+
+<section id="about">
+  <div class="wrap intro-grid">
+    <div>
+      <h2>The idea comes first, then the scissors.</h2>
+      <p class="lede">Most image tools take a style word and return a texture. This skill reads what you wrote, names the tension inside it, and builds an argument out of two unlike things.</p>
+      <div class="body">
+        <p>A phrase like <i>“the tide keeps coming back, the city pretends to be asleep”</i> becomes a pairing sentence, then three photographable motifs — a breaking wave, a night skyline, a lunar crater — then an arch, a horizon, a headline cut from a magazine. The result is a poster that means something, not a photograph with a collage filter.</p>
+        <p>The rules of the medium come from the literature: collage is a two-dimensional assemblage of materials that already have a history, from Picasso's 1912 chair caning onward. Its visual logic is fracture, reassembly, fusion. So the renderer works in paper stocks, print screens, torn edges, tape and registration marks — and it keeps the ink count to two or three.</p>
+      </div>
+    </div>
+    <div>
+      <ul class="rule-list">
+        <li><b>Read</b><span>Extract the tension, write one pairing sentence, choose 2–4 motifs.</span></li>
+        <li><b>Find</b><span>Search Wikimedia Commons, keep CC / public-domain images, write a credit manifest.</span></li>
+        <li><b>Choose</b><span>Pick a strategy: Cubism, Dada, Surrealism, Pop, Décollage, or editorial.</span></li>
+        <li><b>Cut</b><span>Compile a recipe of layers, edges, rotations, type and tape.</span></li>
+        <li><b>Paste</b><span>Render deterministic paper, halftone, shadows, grain. Look at it. Fix it.</span></li>
+        <li><b>Explain</b><span>Deliver the PNG with the rationale and the image credits.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="agent" class="agent">
+  <div class="wrap">
+    <div class="agent-head">
+      <div>
+        <h2>Copy this to your agent.</h2>
+        <p class="lede">If your agent has the skill installed, this is all you need. Paste a theme or a paragraph into the last line.</p>
+      </div>
+      <button class="copy-btn" id="copyBtn" type="button" aria-live="polite">Copy prompt</button>
+    </div>
+<pre class="prompt" id="prompt">Use the collage-art skill to make a finished collage artwork from the text below.
+
+Work end to end without asking me to make artistic decisions:
+1. Read the text, name the tension in it, and write one pairing sentence — "X meets Y, which suggests Z."
+2. Turn that into 2–4 photographable motifs, each with a concrete image-search query and a reason it belongs.
+3. Choose an art-historical strategy (Cubism, Dada, Surrealism, Pop, Décollage or editorial), a palette of 2–4 inks, a headline, and write concept.json.
+4. Autonomously search for licensed source images with source_assets.py, keep only CC / public-domain results, and write the attribution manifest.
+5. Compile the composition with theme_to_recipe.py, render it with collage.py, then look at the actual image and fix any anti-patterns (too many colours, shadow on every layer, a photo still reading as a window, type smaller than the scraps).
+6. Render two or three seeds, pick the best, and deliver the PNG with the pairing sentence, the strategy, the rationale and the image credits.
+
+Text:
+[ paste your theme or paragraph here ]</pre>
+    <p class="prompt-hint">Without the skill installed, clone <a href="https://github.com/Ewen2015/ewen-collage">the repository</a> first — see the install guide below. The skill also accepts your own images instead of searching.</p>
+  </div>
+</section>
+
+<section id="gallery" class="gallery">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Nineteen works.</h2>
+        <p class="lede">Sixteen built-in studies of a single strategy, and three made from a theme through the full pipeline. Every one is a real PNG produced by the renderer, not a mock-up.</p>
+      </div>
+      <span class="count">19 works · 2026</span>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <p class="gallery-note">Click any work to open the full-size image. The three theme-driven works — <i>Tide / City</i>, <i>Night Train</i> and <i>Static Garden</i> — reuse the three Commons photographs credited in <a href="https://github.com/Ewen2015/ewen-collage/blob/main/examples/demo/assets/SOURCES.json">the demo manifest</a>; the rest are generated entirely from procedural paper, type and print textures. Rerun any preset with a different <code>--seed</code> for another arrangement.</p>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap install-grid">
+    <div>
+      <h2>Install it.</h2>
+      <p class="lede">Three short steps. No API keys, no account, no image-generation credits.</p>
+      <ol class="steps">
+        <li>
+          <div>
+            <h3>Get the skill</h3>
+            <p>Copy <code>skills/collage-art/</code> into your skills directory, or install the repo as a plugin using the included manifest.</p>
+<pre class="code"><span class="c"># clone the repo</span>
+git clone https://github.com/Ewen2015/ewen-collage.git
+cd ewen-collage
+
+<span class="c"># copy the skill into your skills folder</span>
+cp -r skills/collage-art ~/.claude/skills/</pre>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h3>Install the Python dependencies</h3>
+            <p>The renderer needs Pillow and NumPy. The search and composition scripts use only the standard library.</p>
+<pre class="code">python3 -m pip install Pillow numpy</pre>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h3>Ask for a collage</h3>
+            <p>Paste the prompt above, or just talk to your agent normally. Network access is needed only for the autonomous image search.</p>
+<pre class="code"><span class="c"># or run the renderer directly</span>
+python3 skills/collage-art/scripts/collage.py --list
+python3 skills/collage-art/scripts/collage.py \
+  --preset cubist-grid --out cubist.png --seed 4</pre>
+          </div>
+        </li>
+      </ol>
+    </div>
+    <aside class="install-aside">
+      <p>The skill is a folder with a <code>SKILL.md</code> workflow, five reference documents, and three scripts. Nothing is a black box: each run leaves a <code>concept.json</code>, a <code>SOURCES.json</code> credit manifest, a <code>recipe.json</code> layout and a plain-language rationale you can edit and rerun.</p>
+      <p>Python 3.9 or newer. Works offline with procedural paper sources; the Wikimedia Commons search simply needs a network connection. All code and generated textures are MIT-licensed.</p>
+      <p class="small">Source photographs keep their own licences. CC BY / BY-SA works require attribution; BY-SA may also require the combined work to be shared alike. Check <code>SOURCES.json</code> before publishing a finished piece.</p>
+      <p><a href="https://github.com/Ewen2015/ewen-collage">Read the full documentation on GitHub</a> · <a href="https://github.com/Ewen2015/ewen-collage/blob/main/skills/collage-art/SKILL.md">Read SKILL.md</a></p>
+    </aside>
+  </div>
+</section>
+
+<section id="credits">
+  <div class="wrap credits">
+    <div>
+      <h3>Made by</h3>
+      <p>Ewen. Built as an open-source experiment in giving an agent an art-historical method instead of a style word.</p>
+    </div>
+    <div>
+      <h3>Visual and historical references</h3>
+      <ul>
+        <li><a href="https://www.artsy.net/gene/collage">Artsy — Collage</a></li>
+        <li><a href="https://www.riseart.com/guide/2371/a-guide-to-collage">Rise Art — A Guide to Collage</a></li>
+        <li><a href="https://www.uisdc.com/tiles-in-graphic-design">优设网 — 拼贴艺术与平面设计</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Repository</h3>
+      <p><a href="https://github.com/Ewen2015/ewen-collage">Ewen2015/ewen-collage</a><br>Code MIT · source images retain their CC terms.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>collage-art · a Claude skill by Ewen</span>
+    <span>Paper, scissors, and a paragraph.</span>
+  </div>
+</footer>
+
+<script>
+const WORKS = [
+  ["tide-city","Tide / City","Theme → image · Surrealism, 2026","surrealism","From the phrase 潮水一次次回来，城市却装作睡着. Three Commons photographs: wave, skyline, lunar crater."],
+  ["cubist-grid","Papier Collé","Cubism, 1912 · preset","cubism","Woodgrain, newsprint and faceted planes reassembled into one shallow picture plane."],
+  ["dada-montage","Dada Monteur","Dada / photomontage · preset","dada","Oversized cut letterforms colliding with a halftone field at conflicting scales."],
+  ["surreal-arch","A Dream of Paper","Surrealism · preset","surrealism","One impossible object inside a calm architectural aperture."],
+  ["pop-halftone","WOW!","Pop / screen print · preset","pop","A single iconic circle, two spot inks and a torn yellow strip."],
+  ["decollage-poster","Affiche","Décollage, c. 1960 · preset","decollage","Striped wallpaper, peeled newsprint and a half-surviving word."],
+  ["riso-editorial","Cut & Paste","Editorial / riso · preset","editorial","A typographic band over a two-column body, interrupted by one torn strip."],
+  ["analog-scrapbook","Epoch","Contemporary mixed media · preset","mixed-media","Stamp, torn photo and a single cut letter on black paper."],
+  ["bauhaus-balance","Form","Geometric abstraction · preset","geometry","Three primaries held in tension by a striped plane."],
+  ["punk-fanzine","Noise","Fanzine / Dada · preset","dada","Illegible newsprint, a black torn headline bar and one red strip."],
+  ["photomontage-scale","Scale","Photomontage · preset","photomontage","A giant letter beside a tiny newspaper column — scale conflict as argument."],
+  ["ticket-stub","Admit One","Ephemera / assemblage · preset","ephemera","Stamp, ticket and newsprint: Schwitters' street detritus."],
+  ["cutout-letter","Collage","Papier collé / Pop · preset","pop","A cut letter knocked out of printed woodgrain wallpaper."],
+  ["two-ink-riso","2 Inks","Two-colour riso · preset","riso","One arch, one halftone disc, one striped strip. Nothing else."],
+  ["assemblage-depth","Objects","Assemblage / depth · preset","assemblage","Thick scraps with drop shadows, pretending to be three-dimensional."],
+  ["dada-heartfield","Monteur","Dada / Heartfield · preset","dada","A tribute to the Berlin photomontage polemic: type as a shout."],
+  ["surreal-window","Elsewhere","Surrealism · preset","surrealism","An arch inside a window, a moon inside the arch."],
+  ["night-train","Night Train","Theme → image · Dada, 2026","dada","A departure that never quite happened, built from a wave, a skyline and a crater."],
+  ["garden-of-static","Static Garden","Theme → image · Surrealism, 2026","surrealism","Nature that remembers a signal, under a cold-blue arch."]
+];
+
+const grid = document.getElementById('grid');
+WORKS.forEach(([file,title,meta,tag,desc]) => {
+  const fig = document.createElement('figure');
+  fig.className = 'work';
+  const a = document.createElement('a');
+  a.href = 'gallery/' + file + '.png';
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.setAttribute('aria-label', title + ' — open full-size image');
+  const frame = document.createElement('div');
+  frame.className = 'frame';
+  const img = document.createElement('img');
+  img.src = 'gallery/' + file + '.png';
+  img.alt = title + '. ' + desc;
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  frame.appendChild(img);
+  a.appendChild(frame);
+  const cap = document.createElement('figcaption');
+  const h = document.createElement('p');
+  h.className = 'title';
+  h.textContent = title;
+  const m = document.createElement('p');
+  m.className = 'meta';
+  m.innerHTML = '<span class="tag">' + meta + '</span><br>' + desc;
+  cap.appendChild(h); cap.appendChild(m);
+  fig.appendChild(a); fig.appendChild(cap);
+  grid.appendChild(fig);
+});
+
+const btn = document.getElementById('copyBtn');
+const promptText = document.getElementById('prompt').textContent;
+btn.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(promptText);
+    btn.textContent = 'Copied';
+  } catch (e) {
+    const r = document.createRange();
+    r.selectNodeContents(document.getElementById('prompt'));
+    const sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(r);
+    btn.textContent = 'Selected — press ⌘C';
+  }
+  setTimeout(() => { btn.textContent = 'Copy prompt'; }, 2200);
+});
+</script>
+</body>
+</html>
