@@ -126,24 +126,6 @@ h2{font-family:var(--serif);font-weight:400;font-size:clamp(32px,3.4vw,46px);
 .meta .tag{color:var(--ink)}
 .gallery-note{font-size:13px;color:var(--muted);max-width:80ch;margin:52px 0 0}
 
-/* install */
-.install-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:80px}
-.steps{list-style:none;margin:0;padding:0;counter-reset:step}
-.steps li{border-top:1px solid var(--hair);padding:22px 0 26px;display:grid;
-  grid-template-columns:44px 1fr;gap:14px}
-.steps li:last-child{border-bottom:1px solid var(--hair)}
-.steps li::before{counter-increment:step;content:counter(step,decimal-leading-zero);
-  font-size:12px;color:var(--muted);padding-top:5px}
-.steps h3{font-size:17px;font-weight:600;margin:0 0 8px}
-.steps p{font-size:15px;color:var(--muted);margin:0 0 12px;max-width:58ch}
-pre.code{background:var(--wash);border:1px solid var(--hair);padding:16px 18px;margin:0;
-  overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  font-size:13px;line-height:1.7;color:#222}
-pre.code .c{color:#8a8a86}
-.install-aside p{font-size:15px;color:#333;max-width:56ch;margin:0 0 18px}
-.install-aside .small{font-size:13px;color:var(--muted)}
-.install-aside a{text-decoration:underline;text-underline-offset:3px}
-
 /* credits / footer */
 .credits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px}
 .credits h3{font-size:14px;font-weight:600;margin:0 0 12px}
@@ -164,7 +146,7 @@ footer a:hover{text-decoration:underline}
   .scrap.b{width:160px;height:200px;right:8%}
   .scrap.c{width:175px;height:175px;left:32%;top:190px}
   .scrap.d{width:130px;height:162px;right:20%;top:230px}
-  .intro-grid,.install-grid{gap:44px}
+  .intro-grid{gap:44px}
 }
 @media (max-width:760px){
   .wrap{padding:0 22px}
@@ -174,7 +156,7 @@ footer a:hover{text-decoration:underline}
   .hero-copy h1{font-size:46px}
   .hero-copy p{font-size:17px}
   section{padding:60px 0}
-  .intro-grid,.install-grid{grid-template-columns:1fr;gap:38px}
+  .intro-grid{grid-template-columns:1fr;gap:38px}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:34px 18px}
   .frame{min-height:210px}
   .frame img{max-height:280px}
@@ -214,7 +196,6 @@ footer a:hover{text-decoration:underline}
       <a href="#about">About</a>
       <a href="#agent">Get the skill</a>
       <a href="#gallery">Gallery</a>
-      <a href="#install">Install</a>
       <a class="repo hide-sm" href="https://github.com/Ewen2015/ewen-collage">GitHub ↗</a>
     </nav>
   </div>
@@ -313,7 +294,7 @@ footer a:hover{text-decoration:underline}
         </div>
       </div>
     </div>
-    <p class="prompt-hint">After installing, run <code>bash install.sh</code> (or <code>install.ps1</code> on Windows) once from the installed folder — it installs Pillow and NumPy and runs <code>check_setup.py</code> to verify every bundled file. Network is optional afterwards: the 16 preset styles work offline; only Wikimedia Commons sourcing needs a connection. Drop <code>-g</code> from the CLI command to install into the current project instead of globally. See the <a href="#install">install guide</a> for the manual path and a test run.</p>
+    <p class="prompt-hint">The install carries the whole folder: the <code>SKILL.md</code> workflow, five reference documents, four scripts, <code>requirements.txt</code>, <code>install.sh</code>, <code>install.ps1</code> and an <code>assets/</code> folder. A lone <code>SKILL.md</code> is not an install. After installing, run <code>bash install.sh</code> (or <code>install.ps1</code> on Windows) once from the installed folder — it installs Pillow and NumPy and runs <code>check_setup.py</code> to verify every bundled file, the fonts and the renderer. To test it: <code>python3 scripts/collage.py --preset cubist-grid --out cubist.png</code>. The 16 preset styles work offline; only Wikimedia Commons sourcing needs a connection. Drop <code>-g</code> from the CLI command to install into the current project instead of globally. <a href="https://github.com/Ewen2015/ewen-collage#install">Full manual path in the README</a>.</p>
   </div>
 </section>
 
@@ -330,55 +311,6 @@ footer a:hover{text-decoration:underline}
     <div class="grid" id="grid"></div>
 
     <p class="gallery-note">Click any work to open the full-size image. The three theme-driven works — <i>Tide / City</i>, <i>Night Train</i> and <i>Static Garden</i> — reuse the three Commons photographs credited in <a href="https://github.com/Ewen2015/ewen-collage/blob/main/examples/demo/assets/SOURCES.json">the demo manifest</a>; the rest are generated entirely from procedural paper, type and print textures. Rerun any preset with a different <code>--seed</code> for another arrangement.</p>
-  </div>
-</section>
-
-<section id="install">
-  <div class="wrap install-grid">
-    <div>
-      <h2>Install it.</h2>
-      <p class="lede">Use the standard CLI, or unpack the portable package yourself. Either way the whole folder lands in your agent's skills directory.</p>
-      <ol class="steps">
-        <li>
-          <div>
-            <h3>Install the complete package</h3>
-            <p>The open agent-skills CLI discovers <code>skills/collage-art/</code> in this repo and links or copies everything inside it. <code>-g</code> installs it for all projects; omit it for the current project only.</p>
-<pre class="code"><span class="c"># Node.js 22.20+ — interactive, picks the agents it finds</span>
-npx skills add Ewen2015/ewen-collage --skill collage-art -g
-
-<span class="c"># or a direct folder URL / archive, for any agent</span>
-npx skills add https://github.com/Ewen2015/ewen-collage/tree/main/skills/collage-art
-npx skills add https://github.com/Ewen2015/ewen-collage/raw/main/dist/collage-art.skill</pre>
-          </div>
-        </li>
-        <li>
-          <div>
-            <h3>Manual path: unzip into a skills folder</h3>
-            <p>No CLI needed. The <code>.skill</code> file is a ZIP with <code>SKILL.md</code> at its root, beside <code>references/</code>, <code>scripts/</code>, <code>requirements.txt</code> and the installers. Replace <code>AGENT_SKILLS</code> with your agent's directory, for example <code>~/.claude/skills</code>, <code>~/.codex/skills</code> or <code>./.agents/skills</code>.</p>
-<pre class="code">mkdir -p AGENT_SKILLS/collage-art
-curl -L -o collage-art.skill \
-  https://github.com/Ewen2015/ewen-collage/raw/main/dist/collage-art.skill
-unzip -o collage-art.skill -d AGENT_SKILLS/collage-art
-cd AGENT_SKILLS/collage-art &amp;&amp; bash install.sh</pre>
-          </div>
-        </li>
-        <li>
-          <div>
-            <h3>Verify, then ask for a collage</h3>
-            <p><code>install.sh</code> installs Pillow and NumPy and runs the setup check. The check confirms all bundled files, fonts and the renderer; then give your agent a theme or a paragraph.</p>
-<pre class="code">python3 scripts/check_setup.py
-python3 scripts/collage.py --preset cubist-grid --out cubist.png --seed 4</pre>
-          </div>
-        </li>
-      </ol>
-    </div>
-    <aside class="install-aside">
-      <p>What an install must contain: the <code>SKILL.md</code> workflow, five reference documents, four scripts, <code>requirements.txt</code>, <code>install.sh</code>, <code>install.ps1</code> and an <code>assets/</code> folder. A lone <code>SKILL.md</code> is not an install — the scripts and references are the part that actually makes the artwork.</p>
-      <p>Nothing is a black box: each run leaves a <code>concept.json</code>, a <code>SOURCES.json</code> credit manifest, a <code>recipe.json</code> layout and a plain-language rationale you can edit and rerun.</p>
-      <p>Python 3.9 or newer. Procedural presets work offline; the Wikimedia Commons search needs a network connection. All code and generated textures are MIT-licensed.</p>
-      <p class="small">Source photographs keep their own licences. CC BY / BY-SA works require attribution; BY-SA may also require the combined work to be shared alike. Check <code>SOURCES.json</code> before publishing a finished piece.</p>
-      <p><a href="https://github.com/Ewen2015/ewen-collage">Read the full documentation on GitHub</a> · <a href="https://github.com/Ewen2015/ewen-collage/blob/main/skills/collage-art/SKILL.md">Read SKILL.md</a></p>
-    </aside>
   </div>
 </section>
 
