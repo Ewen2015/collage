@@ -29,7 +29,10 @@ A recipe is plain JSON:
     }
 
 `box` is [x, y, w, h] in canvas pixels. Rotation keeps the box center fixed.
-Requires: Pillow, NumPy.
+A transparent PNG produced by visual_cutout.py can be used with
+`mask: "alpha"`; its own image-dependent silhouette is preserved.
+
+Requires: Pillow, NumPy. Content-dependent cutting uses the same two libraries.
 """
 
 from __future__ import annotations
@@ -98,6 +101,36 @@ def resolve_font(name, size):
                 except OSError:
                     pass
     return ImageFont.load_default()
+
+
+def alpha_source(spec, w, h, rng, pal):
+    """Fit a transparent, content-cut PNG into its box without losing alpha.
+
+    The cutout carries a shape chosen by the agent from the photograph's
+    subject. Here we preserve that silhouette exactly and letterbox rather
+    than centre-crop, so no part of the cut is thrown away. A missing cutout
+    degrades to a printed-paper field instead of aborting the whole poster.
+    """
+    path = str(spec.get("source", ""))
+    if not os.path.isfile(path):
+        im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        paper = source_image({"source": "newsprint"}, w, h, rng, pal).convert("RGBA")
+        im.alpha_composite(paper, (0, 0))
+        return im
+    im = Image.open(path).convert("RGBA")
+    ratio = min(w / im.width, h / im.height)
+    size = (max(1, int(im.width * ratio)), max(1, int(im.height * ratio)))
+    im = im.resize(size, Image.Resampling.LANCZOS)
+    alpha = im.getchannel("A")
+    rgb_im = Image.new("RGB", im.size, mix(rgb(pal["paper"]), rgb("#d8c9a8"), .35))
+    rgb_im.paste(im.convert("RGB"), (0, 0), alpha)
+    rgb_im = halftone(rgb_im, cell=7, angle=15, ink=(28, 26, 24), opacity=.18)
+    tint = Image.new("RGB", rgb_im.size, mix(rgb(pal["paper"]), rgb("#d8c9a8"), .35))
+    rgb_im = Image.blend(rgb_im, tint, .06)
+    rgb_im = grain_overlay(rgb_im, rng, strength=4)
+    canvas = Image.new("RGBA", (w, h), rgb(pal["paper"]) + (0,))
+    canvas.paste(rgb_im.convert("RGBA"), ((w - size[0]) // 2, (h - size[1]) // 2), alpha)
+    return canvas
 
 
 def noise2d(rng, w, h, scale=1.0):
@@ -282,6 +315,10 @@ def make_mask(kind, w, h, rng):
     if kind in (None, "cut", "rect"):
         j = 1 if kind == "cut" else 0
         d.rectangle([j, j, w - j - 1, h - j - 1], fill=255)
+    elif kind in ("alpha", "content", "retain-alpha"):
+        # alpha_source() already returns a transparent layer with the exact
+        # silhouette; this branch is only a safe fallback for hand recipes.
+        d.rectangle([0, 0, w - 1, h - 1], fill=255)
     elif kind in ("torn", "strip", "torn-v"):
         vertical = kind == "torn-v"
         length = h if vertical else w
@@ -497,9 +534,15 @@ def render(recipe):
             if spec.get("mask"):
                 layer.putalpha(ImageChops_multiply(layer.getchannel("A"), make_mask(spec["mask"], layer.width, layer.height, rng)))
         else:
-            src = source_image(spec, int(pw), int(ph), rng, pal).convert("RGBA")
-            src.putalpha(make_mask(spec.get("mask", "cut"), int(pw), int(ph), rng).point(
-                lambda v: int(v * spec.get("opacity", 1.0))))
+            mask = spec.get("mask", "cut")
+            if mask in ("alpha", "content", "retain-alpha"):
+                # Keep the cut made from the photograph's visible structure.
+                src = alpha_source(spec, int(pw), int(ph), rng, pal)
+                a = src.getchannel("A")
+            else:
+                src = source_image(spec, int(pw), int(ph), rng, pal).convert("RGBA")
+                a = make_mask(mask, int(pw), int(ph), rng)
+                src.putalpha(a)
             layer = src
         paste_piece(canvas, layer, x + pw / 2, y + ph / 2, angle,
                     bool(spec.get("shadow", False)), rng,
@@ -735,9 +778,22 @@ def main():
             print("%-20s %4dx%-4d  seed=%s  pieces=%d" %
                   (k, v["width"], v["height"], v.get("seed", 1), len(v.get("pieces", []))))
         return
+    recipe_dir = None
     if args.recipe:
-        with open(args.recipe, encoding="utf-8") as f:
+        recipe_path = os.path.abspath(args.recipe)
+        recipe_dir = os.path.dirname(recipe_path)
+        with open(recipe_path, encoding="utf-8") as f:
             recipe = json.load(f)
+        # Relative image paths in a hand-written recipe belong beside the
+        # recipe, not to whatever directory the user happened to launch from.
+        for piece in recipe.get("pieces", []):
+            source = piece.get("source")
+            if isinstance(source, str) and ("/" in source or os.sep in source or
+                                            source.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))):
+                if not os.path.isabs(source) and not os.path.isfile(source):
+                    candidate = os.path.join(recipe_dir, source)
+                    if os.path.isfile(candidate):
+                        piece["source"] = candidate
     elif args.preset:
         if args.preset not in PRESETS:
             sys.exit("unknown preset %r (try --list)" % args.preset)

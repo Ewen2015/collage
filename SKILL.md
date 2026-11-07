@@ -1,5 +1,5 @@
 ---
-name: collage-art
+name: collage
 description: >-
   Turn a theme, a brief, or a passage of text into a finished collage artwork.
   Use when the user asks for collage art, a collage poster, a cut-paper
@@ -11,11 +11,11 @@ license: MIT
 compatibility: Requires Python 3.9+; run the bundled install.sh once to install Pillow and NumPy. Network access is needed only for autonomous image sourcing.
 metadata:
   author: Ewen
-  version: 0.1.1
-  repo: ewen-collage
+  version: 0.2.1
+  repo: collage
 ---
 
-# Collage Art
+# Collage
 
 You are given a topic or a body of text. Your job is to produce a **collage
 artwork**, not a description of one. Work end to end: read → extract → find
@@ -35,15 +35,16 @@ python3 scripts/check_setup.py
 ```
 
 It verifies the Python version, every bundled file, Pillow, NumPy, font
-resolution and a renderer smoke test. If anything is missing:
+resolution, a renderer smoke test and a content-cut smoke test. If anything is
+missing:
 
 ```bash
 bash install.sh          # macOS / Linux: installs requirements.txt, then re-runs the check
 # Windows: powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
-The installers need a network connection only for the two Python packages;
-every other part of the skill works offline.
+The installers need a network connection only for the Python packages; every
+other part of the skill works offline.
 
 The guiding idea comes from the reference material in `references/`: collage is
 an assemblage of materials that already have a history (Rise Art, Artsy), and
@@ -128,21 +129,52 @@ If the environment has no network, say so and continue with the procedural
 paper sources (`photo`, `newsprint`, `grid`, `wood`, `halftone`), which need no
 downloads. The renderer degrades gracefully when an asset path is missing.
 
-## Step 3 — Compile the composition
+## Step 3 — Cut the images according to their visible content
+
+**This is not optional.** A finished collage must not be a stack of whole
+rectangular photographs with decorative torn edges. Look at each source image
+and cut the thing that carries meaning: a silhouette, a hand, a keyboard, a
+mouth, a bridge plank, a dark diagonal, a field of blue, a line of seats, a
+chalkboard, a passage through grass. Recombine those image-shaped fragments so
+the seam becomes an argument. Lydia Rink's beginner guide reinforces the
+physical version of this: a scalpel/craft knife is for precision cutting around
+elements; arrange loosely before gluing; leave negative space; vary scale; use
+layers to make depth.
+
+`scripts/visual_cutout.py` is a deliberately small digital scalpel. It uses
+only Pillow and NumPy. The main mode is `shape`: look at the source photograph
+and describe the visible object or structural region with a normalized polygon.
+A second `silhouette` mode removes a plain border/background by colour
+distance. There is no heavyweight image-segmentation dependency. The compiler
+also writes `cuts/contact-sheet.jpg`; inspect it before composing and adjust
+the polygon if the cut misses the subject.
+
+The compiler runs the cuts and binds the resulting transparent PNGs to the
+recipe with `mask: "alpha"`:
 
 ```bash
 python3 scripts/theme_to_recipe.py --concept <job>/concept.json \
-    --assets <job>/assets --recipe <job>/recipe.json --seed 11 --format poster
+    --assets <job>/assets --recipe <job>/recipe.json \
+    --cutouts <job>/cuts --seed 11 --format poster
 ```
 
-This chooses the composition system, layer order, cut edges, rotations, type
-treatment and tape from the strategy, and binds the sourced images to pieces.
-It also writes `<job>/recipe-rationale.md`. `--format` accepts `poster`,
-`editorial`, `square`, `banner`.
+Describe cuts in the concept on each motif (`cut`) or in a `cuts` map keyed by
+motif id. A motif may provide one instruction or a list of instructions, which
+produces several fragments from one photograph:
 
-You may edit `<job>/recipe.json` by hand to fix a specific problem. See
-`references/materials.md` for every `source`, `mask` and `blend` value, and
-`references/composition.md` for the layout systems and anti-patterns.
+```json
+"cut": [
+  {"mode": "shape", "shape": "0.00,0.00;1.00,0.00;1.00,0.46;0.00,1.00"},
+  {"mode": "shape", "shape": "0.00,0.79;0.34,0.60;1.00,0.73;1.00,1.00;0.00,1.00"}
+]
+```
+
+Use `shape` for the semantic contour you can see in the photograph;
+coordinates are normalized `x,y;x,y;...`. Use `silhouette` only when the
+object sits on a plain paper-like background. Keep one or two geometric/torn
+paper scraps as counterpoint, but the found photographs must be cut by content
+first. See `references/composition.md` for the cutting method and
+`references/materials.md` for `alpha` sources and masks.
 
 ## Step 4 — Render
 
@@ -160,8 +192,10 @@ two or three seeds and pick the best one — torn edges and facet fields vary.
 Always **look at the image** you produced (open it or generate a contact sheet)
 before delivering. Check the anti-patterns in `references/composition.md`:
 too many colours, shadow on every layer, everything at 0°, all-torn edges, type
-smaller than the scraps, a photo that still reads as a window rather than a
-printed scrap. If it fails, adjust the recipe or strategy and re-render.
+smaller than the scraps, and especially a photograph still reading as a whole
+rectangular window instead of a shape cut from its own content. If the semantic
+cut is not legible at thumbnail size, return to Step 3. If it fails, adjust the
+recipe or strategy and re-render.
 
 Then deliver the PNG plus a short explanation of the pairing sentence, the
 strategy and why those motifs were chosen. Include the credit lines from
@@ -179,6 +213,8 @@ require the combined work to be shared alike). Point the user to
 | Render a preset | `python3 scripts/collage.py --preset dada-montage --out out.png` |
 | Save a preset as an editable recipe | `python3 scripts/collage.py --preset cubist-grid --out x.png --dump x.json` |
 | Hand-write a recipe | `python3 scripts/collage.py --recipe x.json --out x.png` |
+| Cut a hand-observed contour | `python3 scripts/visual_cutout.py --input photo.jpg --out cut.png --mode shape --shape "0,.1;1,0;.9,1;0,.9" --contact-sheet sheet.jpg` |
+| Remove a plain background | `python3 scripts/visual_cutout.py --input object.jpg --out cut.png --mode silhouette` |
 | Probe an image search | `python3 scripts/source_assets.py --query-only "moon crater"` |
 | Test a concept offline | `python3 scripts/source_assets.py --concept c.json --out-dir a --offline` |
 
@@ -186,11 +222,13 @@ require the combined work to be shared alike). Point the user to
 
 `requirements.txt` declares Pillow and NumPy. `install.sh` (macOS/Linux) and
 `install.ps1` (Windows) install them and run `scripts/check_setup.py`.
-`scripts/check_setup.py` verifies every bundled file, the Python version,
-font resolution and a renderer smoke test.
-`scripts/collage.py` is the renderer (Pillow + NumPy, no network).
-`scripts/source_assets.py` is the Commons search/downloader (stdlib only).
-`scripts/theme_to_recipe.py` compiles a concept into a recipe (stdlib only).
+`scripts/check_setup.py` verifies every bundled file, the Python version, font
+resolution, a renderer smoke test and a cutout smoke test. `scripts/collage.py`
+is the renderer (Pillow + NumPy, no network). `scripts/visual_cutout.py` cuts
+hand-observed polygons and simple plain-background silhouettes (Pillow + NumPy,
+no network). `scripts/source_assets.py` is the Commons search/downloader
+(stdlib only). `scripts/theme_to_recipe.py` compiles a concept into a recipe
+and runs the lightweight content-cut commands.
 `references/movements.md` is the art-historical decision map with sources.
 `references/materials.md` documents paper stocks, sources, edges and blends.
 `references/composition.md` documents layout systems and anti-patterns.
@@ -199,7 +237,10 @@ a better fit than the renderer.
 `references/concept-schema.md` is the concept JSON contract.
 `assets/` is the optional place for user-provided source images.
 
-A complete worked example (theme → concept → sourced assets → recipe →
-rationale → final PNG) lives in the repo's `examples/demo/` directory. The
-installable package itself is the whole `collage-art/` folder, packaged as
-`collage-art.skill` (a ZIP whose files sit at the archive root).
+A historical worked example (theme → concept → sourced assets → recipe →
+rationale → final PNG) lives in the repo's `examples/demo/` directory; it shows
+the earlier rectangular-scrap pipeline and is kept as a renderer example, not
+as the current content-cut workflow. The repository itself is the installable
+package: `SKILL.md`, `references/`, `scripts/`, the installers and `assets/`
+sit at the root. `dist/collage.skill` is a ZIP of exactly those files, with the
+same paths at the archive root.

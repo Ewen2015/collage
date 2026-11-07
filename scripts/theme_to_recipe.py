@@ -11,12 +11,13 @@ rotations, type and tape, and binding the downloaded assets to the pieces.
 Usage
 -----
     python3 theme_to_recipe.py --concept concept.json --assets assets/session-01 \
-        --recipe out/recipe.json [--seed 11] [--format poster|editorial|square|banner]
+        --recipe out/recipe.json --cutouts out/cuts \
+        [--seed 11] [--format poster|editorial|square|banner]
 
 It also emits a rationale file (out/rationale.md): the design decisions in plain
 language, so the output can be explained and revised.
 
-Requires: Python stdlib only.
+Requires: Python stdlib, plus Pillow / NumPy for the cutout step.
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 
 # Each movement carries its own defaults. These are the art-historical rules
@@ -65,7 +67,85 @@ def pick(seq, i):
     return seq[i % len(seq)]
 
 
-def build(concept, assets, fmt, seed):
+CUTOUT_METHODS = ("shape", "silhouette")
+
+
+def cut_commands(a, cut_dir, index, concept=None):
+    """Return lightweight content-cut commands for one source asset.
+
+    Shape cuts are explicit polygons observed by the agent; silhouette cuts
+    remove a plain border/background. Both run with Pillow + NumPy only.
+    """
+    raw = a.get("cut")
+    if raw is None:
+        raw = (concept or {}).get("cut_default",
+                                  {"mode": "shape",
+                                   "shape": "0.06,0.06;0.94,0.03;0.98,0.94;0.04,0.97"})
+    items = raw if isinstance(raw, list) else [raw]
+    commands, specs = [], []
+    for j, item in enumerate(items):
+        d = {"mode": item} if isinstance(item, str) else dict(item or {})
+        mode = d.get("mode", "shape")
+        if mode not in CUTOUT_METHODS:
+            raise ValueError("unknown cut mode %r for %s; use shape or silhouette" %
+                             (mode, a.get("id")))
+        if mode == "shape" and not d.get("shape"):
+            raise ValueError("shape cut for %s needs a normalized polygon" % a.get("id"))
+        out = os.path.abspath(os.path.join(
+            cut_dir, "%s-%02d.png" % (a.get("id", "asset-%d" % index), j + 1)))
+        cmd = [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "visual_cutout.py"),
+               "--input", os.path.abspath(os.path.join(a["_dir"], a["file"])),
+               "--out", out, "--mode", mode]
+        for flag, key in (("--shape", "shape"),
+                          ("--min-area", "min_area"),
+                          ("--threshold", "threshold"),
+                          ("--fallback", "fallback"),
+                          ("--polarity", "polarity"),
+                          ("--seed", "seed"),
+                          ("--target-area", "target_area"),
+                          ("--sensitivity", "sensitivity"),
+                          ("--angle", "angle"),
+                          ("--thickness", "thickness"),
+                          ("--limit", "limit")):
+            if key in d:
+                cmd += [flag, str(d[key])]
+        commands.append(cmd)
+        specs.append({"source": out, "mask": "alpha", "cut": d,
+                      "original": a["file"], "mode": mode})
+    return commands, specs
+
+
+def make_cut_sheet(cut_dir):
+    """Write a small contact sheet so the agent can actually inspect the cuts."""
+    try:
+        from PIL import Image, ImageDraw
+    except Exception:
+        return None
+    files = sorted(os.path.join(cut_dir, f) for f in os.listdir(cut_dir)
+                   if f.lower().endswith(".png"))
+    if not files:
+        return None
+    tw, th, pad, label_h = 300, 230, 16, 24
+    cols = min(3, len(files))
+    rows = (len(files) + cols - 1) // cols
+    sheet = Image.new("RGB", (cols * (tw + pad) + pad,
+                              rows * (th + label_h + pad) + pad), "#eeeae1")
+    d = ImageDraw.Draw(sheet)
+    for i, path in enumerate(files):
+        im = Image.open(path).convert("RGBA")
+        im.thumbnail((tw, th))
+        x = pad + (i % cols) * (tw + pad)
+        y = pad + (i // cols) * (th + label_h + pad)
+        bg = Image.new("RGBA", (tw, th), "#d8d4ca")
+        bg.alpha_composite(im, ((tw - im.width) // 2, (th - im.height) // 2))
+        sheet.paste(bg.convert("RGB"), (x, y))
+        d.text((x, y + th + 4), os.path.basename(path), fill="#222")
+    out = os.path.join(cut_dir, "contact-sheet.jpg")
+    sheet.save(out, quality=90)
+    return out
+
+
+def build(concept, assets, fmt, seed, job_dir=None, cut_dir=None, run_cuts=True):
     W, H = FORMATS[fmt]
     key = concept.get("strategy", "editorial")
     if key not in STRATEGIES:
@@ -100,18 +180,38 @@ def build(concept, assets, fmt, seed):
                  [int(W * .08), int(H * .68), int(W * .84), int(H * .20)]]
 
     # Bind assets to pieces. Preserve hero-first order from the manifest.
+    # Content-aware cuts are mandatory for sourced photographs: a rectangular
+    # photo window is no longer the default. Each command is executed here so
+    # the generated transparent PNG is ready before the recipe is rendered.
+    if job_dir is None:
+        job_dir = "."
+    if cut_dir is None:
+        cut_dir = os.path.join(job_dir, "cuts")
+    if run_cuts:
+        os.makedirs(cut_dir, exist_ok=True)
     by_role = {}
     for a in assets:
         by_role.setdefault(a.get("role", "satellite"), []).append(a)
     ordered = by_role.get("hero", []) + by_role.get("ground", []) + by_role.get("satellite", [])
+    resolved, commands = [], []
+    for i, a in enumerate(ordered):
+        cmds, specs = cut_commands(a, cut_dir, i, concept)
+        commands.extend(cmds)
+        resolved.append(specs)
+    if run_cuts:
+        for cmd in commands:
+            print("content cut: " + " ".join(cmd), file=sys.stderr)
+            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL)
+        make_cut_sheet(cut_dir)
+    flat = [src for group in resolved for src in group]
 
-    rots = jitter(seed, s["rotate"][0], s["rotate"][1], max(1, len(ordered) + len(slots)))
+    rots = jitter(seed, s["rotate"][0], s["rotate"][1], max(1, len(flat) + len(slots)))
     pieces = []
     for i, slot in enumerate(slots):
-        a = ordered[i] if i < len(ordered) else None
-        edge = pick(s["edges"], i)
+        a = flat[i] if i < len(flat) else None
+        edge = a.get("mask", pick(s["edges"], i)) if a else pick(s["edges"], i)
         spec = {
-            "source": (os.path.join(assets[0]["_dir"], a["file"]) if a else "grid"),
+            "source": (a["source"] if a else "grid"),
             "box": slot,
             "rotate": round(rots[i], 1),
             "mask": edge,
@@ -160,7 +260,8 @@ def build(concept, assets, fmt, seed):
         "pieces": pieces, "tape": tape,
         "marks": s["marks"] > 0, "mark_density": s["marks"],
         "_meta": {"strategy": key, "format": fmt, "statement": concept.get("statement", ""),
-                  "headline": headline, "assets_used": len(ordered)},
+                  "headline": headline, "assets_used": len(ordered),
+                  "content_cuts": [s["cut"] for s in flat]},
     }
     return recipe
 
@@ -185,7 +286,8 @@ def rationale(concept, recipe, manifest):
         "",
         "## Composition decisions", "",
         "- %d pasted pieces; hero imagery first, then medium scraps, then type, then tape and pencil marks." % len(recipe["pieces"]),
-        "- Mixed edges (straight cuts against torn strips) to keep it reading as assemblage rather than a filtered photo.",
+        "- Found photographs are first cut according to their own visible content with hand-observed polygons or a simple plain-background silhouette. These transparent cut-outs are then recombined; no sourced image is pasted as a whole rectangular window.",
+        "- A few geometric or torn paper scraps remain as counterpoint, so the content cuts read as cut paper rather than digital masking.",
         "- Rotations are small and non-repeating; only the two largest pieces carry drop shadow.",
         "- Exposed paper is intentional negative space; exact placement comes from `references/composition.md`.",
         "",
@@ -204,6 +306,7 @@ def main():
     ap.add_argument("--concept", required=True)
     ap.add_argument("--assets", required=True, help="directory containing SOURCES.json")
     ap.add_argument("--recipe", required=True, help="output recipe JSON path")
+    ap.add_argument("--cutouts", help="directory for transparent content cuts (default: <recipe-dir>/cuts)")
     ap.add_argument("--seed", type=int, default=11)
     ap.add_argument("--format", default="poster", choices=list(FORMATS))
     args = ap.parse_args()
@@ -216,8 +319,22 @@ def main():
     assets = manifest.get("assets", [])
     for a in assets:
         a["_dir"] = args.assets
+    concept_cuts = concept.get("cuts", {})
+    by_motif = {m.get("id"): m.get("cut") for m in concept.get("motifs", []) if m.get("cut")}
+    for a in assets:
+        if a.get("motif") in by_motif:
+            a["cut"] = by_motif[a["motif"]]
+        elif a.get("id") in concept_cuts:
+            a["cut"] = concept_cuts[a["id"]]
+        elif a.get("motif") in concept_cuts:
+            a["cut"] = concept_cuts[a["motif"]]
+        elif a.get("id") in by_motif:
+            a["cut"] = by_motif[a["id"]]
 
-    recipe = build(concept, assets, args.format, args.seed)
+    job_dir = os.path.dirname(os.path.abspath(args.recipe))
+    cut_dir = args.cutouts or os.path.join(job_dir, "cuts")
+    recipe = build(concept, assets, args.format, args.seed,
+                   job_dir=job_dir, cut_dir=cut_dir)
     os.makedirs(os.path.dirname(os.path.abspath(args.recipe)), exist_ok=True)
     with open(args.recipe, "w", encoding="utf-8") as f:
         json.dump(recipe, f, ensure_ascii=False, indent=2)

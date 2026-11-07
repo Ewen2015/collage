@@ -1,4 +1,4 @@
-# Runtime dependencies for the collage-art skill.
+# Runtime dependencies for the collage skill.
 # Python 3.9+ is required. Install once, from the installed skill folder:
 #   python3 -m pip install -r requirements.txt
 Pillow>=9.0

@@ -42,6 +42,13 @@ they were photographed on the same sheet — do not skip it.
   device.
 - Any local `.png` / `.jpg` / `.webp` path — centre-cropped to the box. Use
   real assets when the user supplies them; the procedural ones are fallbacks.
+- A transparent content-cut `.png` made by `scripts/visual_cutout.py` — use it
+  with `mask: "alpha"` (also accepted: `content`, `retain-alpha`). The cut is a
+  hand-observed polygon or a simple plain-background silhouette, made with
+  Pillow + NumPy. The renderer letterboxes the cutout inside its box so no part
+  of its silhouette is cropped away, then applies the same halftone, warm tint
+  and paper grain to its ink. This is the required source form for found
+  photographs after Step 3.
 
 ## Cut edges (`mask` on a piece)
 
@@ -55,10 +62,12 @@ they were photographed on the same sheet — do not skip it.
 | `arch` | Flat-bottomed arch, an architectural aperture. |
 | `triangle`, `diamond` | Geometric facet. |
 | `perforated` | Stamp or ticket edge. |
+| `alpha` / `content` / `retain-alpha` | Preserve the transparent silhouette made from a source image's own content. Required for photographs cut by `visual_cutout.py`. |
 
-Rule of thumb: mix **one** geometric cut with **one or two** torn edges. All
-straight reads as graphic design; all torn reads as a scrapbook. The tension
-between them is the medium.
+Rule of thumb: mix **one** geometric cut or torn paper scrap with two or three
+content-derived silhouettes. All straight reads as graphic design; all torn
+reads as a scrapbook; all rectangle-shaped photographs reads as simple stacking.
+The content cut is the primary edge; geometric and torn edges are counterpoint.
 
 ## Blend, shadow, tape, marks
 

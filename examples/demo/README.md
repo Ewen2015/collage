@@ -18,7 +18,7 @@ distance and one impossible object in a calm frame. See [`concept.json`](concept
 ## Step 2 — source
 
 ```bash
-python3 ../../skills/collage-art/scripts/source_assets.py \
+python3 ../../scripts/source_assets.py \
     --concept concept.json --out-dir assets --per-motif 1
 ```
 
@@ -32,7 +32,7 @@ example of why Step 5's visual check matters.
 ## Step 3 — compose
 
 ```bash
-python3 ../../skills/collage-art/scripts/theme_to_recipe.py \
+python3 ../../scripts/theme_to_recipe.py \
     --concept concept.json --assets assets --recipe recipe.json \
     --seed 11 --format poster
 ```
@@ -43,7 +43,7 @@ explains every decision in plain language.
 ## Step 4 — render
 
 ```bash
-python3 ../../skills/collage-art/scripts/collage.py \
+python3 ../../scripts/collage.py \
     --recipe recipe.json --out tide-city.png --scale 0.75
 ```
 

@@ -13,6 +13,8 @@ JSON, UTF-8, no comments.
 | `strategy` | enum | yes | `cubism`, `dada`, `surrealism`, `pop`, `decollage`, `editorial`. Chooses paper, edges, rotation range, font, tape and marks. |
 | `palette` | string[] | no | 2–4 hex inks, dominant first. Defaults to the paper's ink set. |
 | `motifs` | object[] | yes | 2–4 entries, described below. |
+| `cuts` | object | no | Optional cut instructions keyed by motif id or downloaded asset id. |
+| `cut_default` | object | no | Fallback cut instruction for assets with no explicit cut. |
 
 Each motif:
 
@@ -22,6 +24,7 @@ Each motif:
 | `query` | string | yes | 2–4 concrete English words for Commons. No aesthetic adjectives, no abstract nouns, avoid queries that return portraits. |
 | `role` | enum | yes | Exactly one `hero` (largest piece), plus `ground` and/or `satellite`. |
 | `why` | string | yes | What this image contributes to the pairing sentence. Appears in the rationale. |
+| `cut` | object or object[] | no | Content cut(s) for this motif. Prefer `{"mode":"shape","shape":"x,y;x,y;..."}`; `{"mode":"silhouette"}` is for plain-background objects only. A list makes several fragments from one photograph. |
 
 ## Choosing a strategy from the text
 

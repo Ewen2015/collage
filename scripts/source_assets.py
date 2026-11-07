@@ -41,7 +41,7 @@ import urllib.parse
 import urllib.request
 
 API = "https://commons.wikimedia.org/w/api.php"
-UA = "ewen-collage/0.1 (collage-art skill; local research use)"
+UA = "collage/0.1 (collage skill; local research use)"
 # Licences we are comfortable reusing. ShareAlike results are allowed but are
 # recorded explicitly in the manifest so the final work can carry the same terms.
 OK_LICENSES = {
